@@ -6,7 +6,7 @@ library("devtools")
 
 devtools::install_github("xinghuq/KLFDAPC")
 
-## Deependencies
+## Dependencies
 requireNamespace("SNPRelate")
 
 if (!requireNamespace("BiocManager", quietly=TRUE))
