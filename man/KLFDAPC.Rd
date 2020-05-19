@@ -104,7 +104,7 @@ Zheng, X., Levine, D., Shen, J., Gogarten, S. M., Laurie, C., & Weir, B. S. (201
 }
 
 \examples{
-# example genepop file
+# example file
 f <- system.file('extdata',package='KLFDAPC')
 infile <- file.path(f, "2019-nCoV_total.gds")
 ##Note the labels below is random
