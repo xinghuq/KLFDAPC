@@ -1,0 +1,20 @@
+Package: KLFDAPC
+Type: Package
+Title: KLFDAPC: Kernel Local Fisher Discriminant Analysis of Principal Components- A Non-linear Tool for Population Structure Inference. 
+Version: 0.1.0
+Author: Xinghu Qin
+Maintainer: Xinghu Qin <qinxinghu@gmail.com>
+Description: This package implements Kernel local Fisher discriminant analysis of principal components(KLFDAPC). 
+    KLFDAPC is known for appying the kernel trick considering the non-linear properties of the data, therefore non-linearlized the local Fisher discriminant analysis. It not only preserves between -group variances, but also retains the within-group variances of tha data. In other words, it keeps both the global and local structure of the data.  
+License: GPL (>= 3)
+Encoding: UTF-8
+LazyData: true
+SystemRequirements: GNU make
+URL: https://github.com/xinghuq/KLFDAPC
+BugReports: https://github.com/xinghuq/KLFDAPC/issues
+biocViews:
+Imports: lfda,MASS,kernlab,klaR,plotly,rARPACK,SNPRelate,DA
+VignetteBuilder: knitr
+NeedsCompilation: no
+RoxygenNote: 6.1.1
+Suggests: knitr,testthat,rmarkdown
