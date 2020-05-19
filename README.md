@@ -21,7 +21,7 @@ if (!requireNamespace("SNPRelate", quietly=TRUE))
  
   devtools::install_github("xinghuq/DA")
 
-### example
+### Example
 f <- system.file('extdata',package='KLFDAPC')
 
 infile <- file.path(f, "2019-nCoV_total.gds")
