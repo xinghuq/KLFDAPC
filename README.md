@@ -5,6 +5,15 @@
 library("devtools")
 devtools::install_github("xinghuq/KLFDAPC")
 
+## Deependencies
+requireNamespace("SNPRelate")
+if (!requireNamespace("BiocManager", quietly=TRUE))
+  install.packages("BiocManager",repos = "http://cran.us.r-project.org")
+if (!requireNamespace("SNPRelate", quietly=TRUE))
+  BiocManager::install("SNPRelate")
+ if (!requireNamespace("DA", quietly=TRUE))
+  devtools::install_github("xinghuq/DA")
+
 ### example
 f <- system.file('extdata',package='KLFDAPC')
 infile <- file.path(f, "2019-nCoV_total.gds")
