@@ -48,10 +48,11 @@ virus_klfdapc=KLFDAPC(infile,y,kernel=kernlab::rbfdot(sigma = 0.5),r=3,snp.id=NU
 showfile.gds(closeall=TRUE)
 ``````
 ##### Plot the reduced features
-
+``````{r}
 plot(virus_klfdapc$KLFDAPC$Z, virus_klfdapc$KLFDAPC$Z, col=as.integer(y), xlab="KLFDA 2", ylab="KLFDA 1")
 legend("bottomright", legend=levels(y), pch="o", col=1:nlevels(y))
 
+``````
 Welcome any [feedback](https://github.com/xinghuq/KLFDAPC/issues) and [pull request](https://github.com/xinghuq/KLFDAPC/pulls). 
 
 
