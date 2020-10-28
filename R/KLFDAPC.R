@@ -13,7 +13,7 @@ kmatrixGauss=function (x, sigma = 1)
 
 
 
-KLFDA=function(kdata, y, r, sigma=0.5, metric = c("weighted", "orthonormalized",
+KLFDA=function(kdata, y, r,  metric = c("weighted", "orthonormalized",
                                     "plain"),tol=1e-5, knn = 6, reg = 0.001)
 {
   require(lfda)
