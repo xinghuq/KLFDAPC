@@ -73,8 +73,64 @@
 
       </header><div class="row">
   <div class="contents col-md-9">
-This package implements Kernel local Fisher discriminant analysis of principal components(KLFDAPC). 
-    KLFDAPC is known for appying the kernel trick considering the non-linear properties of the data, therefore non-linearlized the local Fisher discriminant analysis. It not only preserves between -group variances, but also retains the within-group variances of tha data. In other words, it keeps both the global and local structure of the data.  
+
+<div id="klfdapc" class="section level1">
+<div class="page-header"><h1 class="hasAnchor">
+<a href="#klfdapc" class="anchor"></a>KLFDAPC</h1></div>
+</div>
+<div id="kernel-local-fisher-discriminant-analysis-of-principal-components-klfdapc-for-large-genomic-data" class="section level1">
+<h1 class="hasAnchor">
+<a href="#kernel-local-fisher-discriminant-analysis-of-principal-components-klfdapc-for-large-genomic-data" class="anchor"></a>Kernel local Fisher discriminant analysis of principal components (KLFDAPC) for large genomic data</h1>
+<div id="quick-start" class="section level2">
+<h2 class="hasAnchor">
+<a href="#quick-start" class="anchor"></a>Quick start</h2>
+</div>
+<div id="install-packages" class="section level2">
+<h2 class="hasAnchor">
+<a href="#install-packages" class="anchor"></a>Install packages</h2>
+<p>Install the most recent version of the PCAviz package using devtools:</p>
+<pre class="{r}"><code><a href="https://github.com/r-lib/devtools">library("devtools")
+
+devtools::install_github("xinghuq/KLFDAPC")</a></code></pre>
+<p>Alternatively, you can install from the source files, run the following commands in the shell:</p>
+<pre class="{shell}"><code>R CMD build KLFDAPC
+R CMD check --as-cran KLFDAPC_0.1.0.tar.gz
+R CMD INSTALL KLFDAPC_0.1.0.tar.gz</code></pre>
+</div>
+<div id="dependencies" class="section level2">
+<h2 class="hasAnchor">
+<a href="#dependencies" class="anchor"></a>Dependencies</h2>
+<p>Before install or during installation, make sure the below dependences are installed.</p>
+<pre class="{r}"><code><a href="http://github.com/zhengxwen/SNPRelate">requireNamespace("SNPRelate")
+
+if (!requireNamespace("BiocManager", quietly=TRUE))
+
+  install.packages("BiocManager",repos = "http://cran.us.r-project.org")
+  
+if (!requireNamespace("SNPRelate", quietly=TRUE))
+
+  BiocManager::install("SNPRelate")
+  
+ if (!requireNamespace("DA", quietly=TRUE))
+ 
+  devtools::install_github("xinghuq/DA")</a></code></pre>
+<div id="vignettes-and-tutorials" class="section level3">
+<h3 class="hasAnchor">
+<a href="#vignettes-and-tutorials" class="anchor"></a>Vignettes and tutorials</h3>
+<pre class="{r}"><code><a href="articles/Population_structure_of_Covid.html">
+vignette("Population_structure_of_Covid")
+vignette("Population_structure_of_RegMap")
+vignette("Genome_scan_KLFDAPC")</a></code></pre>
+<p>Welcome any <a href="https://github.com/xinghuq/KLFDAPC/issues">feedback</a> and <a href="https://github.com/xinghuq/KLFDAPC/pulls">pull request</a>.</p>
+</div>
+</div>
+<div id="citation" class="section level2">
+<h2 class="hasAnchor">
+<a href="#citation" class="anchor"></a>Citation</h2>
+<p>Qin. X. 2020. KLFDAPC: Kernel local Fisher discriminant analysis of principal components (KLFDAPC) for large genomic data. R package version 0.2.0.</p>
+</div>
+</div>
+
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
