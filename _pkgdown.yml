@@ -1,0 +1,62 @@
+url: http://github.com/xinghuq/KLFDAPC
+
+development:
+  mode: auto
+
+template:
+  params:
+    bootswatch: cosmo
+    ganalytics: UA-158177382-1
+
+authors:
+  Xinghu Qin:
+  href: https://sites.google.com/view/communitygenomics/home
+
+navbar:
+  left:
+    - text: "Home"
+      href: index.html
+    - text: "Articles"
+      href: articles/index.html
+    - text: "Functions"
+      href: reference/index.html
+
+home:
+  - title: Kernel Local Fisher Discriminant Analysis of Principal Component Analysis (KLFDAPC) for inference of individual geograhphic origin and detection of natural selection
+    contents:
+    - index
+
+
+articles:
+- title: "Population structure of SARS-Cov-2"
+  contents:
+  - Population_structure_of_Covid
+
+- title: "Population structure of Regmap data"
+  contents:
+  - Population_structure_of_RegMap
+
+- title: "Detecting signatures of selection using KLFDAPC"
+  desc: Detecting signatures related to local adaptation
+  contents:
+  - Genome_scan_KLFDAPC
+
+
+reference:
+  - title: KLFDAPC general function
+    desc: Kernel Local Fisher Discriminant Analysis of Principal Component Analysis functions
+  - contents:
+    - starts_with("KLFDA")
+    - starts_with("KLFDAPC")
+    - starts_with("predict.klfdapc")
+
+  - title: Kernel methods
+  - contents:
+    - starts_with("kmatrixGauss")
+    - starts_with("KLFDAPC")
+  - title: Genome scan based on KLFDAPC
+  - contents:
+    - starts_with("KLFDAPT")
+  - title: Data
+  - contents:
+    - starts_with("regmappcs")
