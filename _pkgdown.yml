@@ -23,9 +23,6 @@ navbar:
 
 home:
   - title: Kernel Local Fisher Discriminant Analysis of Principal Component Analysis (KLFDAPC) for inference of individual geograhphic origin and detection of natural selection
-    description: >
-     This package implements Kernel local Fisher discriminant analysis of principal components(KLFDAPC).
-     KLFDAPC is known for appying the kernel trick considering the non-linear properties of the data, therefore non-linearlized the local Fisher discriminant analysis. It not only preserves between -group variances, but also retains the within-group variances of tha data. In other words, it keeps both the global and local structure of the data.
     contents:
     - index
 
