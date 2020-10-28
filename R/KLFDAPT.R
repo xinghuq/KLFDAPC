@@ -1,6 +1,8 @@
 
 
 
+
+
 KLFDAPT=function(klfdapc, gdsfile, estimation="auto",snp.id = NULL, n.RD = NULL, num.thread = 1L,
                   with.id = TRUE, outgds = NULL, verbose = TRUE)
 {
@@ -9,7 +11,7 @@ KLFDAPT=function(klfdapc, gdsfile, estimation="auto",snp.id = NULL, n.RD = NULL,
 
 
 
-    DLqvalues=function(DL_data,K,estimation=estimation)
+    DLqvalues=function(DL_data,K,estimation)
     {
       require(robust)
       require(qvalue)
@@ -28,10 +30,9 @@ KLFDAPT=function(klfdapc, gdsfile, estimation="auto",snp.id = NULL, n.RD = NULL,
     rownames(codata)=rv$snp.id
 
     ### this step potentially remove the missing values
-    q.values=DLqvalues(codata,K=length(n.RD))
+    q.values=DLqvalues(codata,K=length(n.RD),estimation=estimation)
   out=list(cor=rv,q.values=q.values)
   class(out)="KLFDAPT"
     return(out)
 
   }
-
