@@ -333,8 +333,9 @@ print("Doing KLFDAPC")
 
 klfdapcs=klfda_1(pcadata$eigenvect[,1:n.pc],y,kernel,r,tol,...)
 
-
-return(list(KLFDAPC=klfdapcs,PCA=pcadata))
+out=list(KLFDAPC=klfdapcs,PCA=pcadata)
+ class(out) <- "KLFDAPC"
+return(out)
 
 
 }
