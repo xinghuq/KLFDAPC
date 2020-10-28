@@ -49,7 +49,7 @@ showfile.gds(closeall=TRUE)
 ``````
 ##### Plot the reduced features
 ``````{r}
-plot(virus_klfdapc$KLFDAPC$Z, virus_klfdapc$KLFDAPC$Z, col=as.integer(y), xlab="KLFDA 2", ylab="KLFDA 1")
+plot(virus_klfdapc$KLFDAPC$Z[,1], virus_klfdapc$KLFDAPC$Z[,2], col=as.integer(y), xlab="KLFDA 2", ylab="KLFDA 1")
 legend("bottomright", legend=levels(y), pch="o", col=1:nlevels(y))
 
 ``````
