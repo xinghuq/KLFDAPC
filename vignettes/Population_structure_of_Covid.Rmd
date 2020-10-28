@@ -1,0 +1,79 @@
+---
+title: "Population structure of SARS-Cov-2"
+author: "Xinghu Qin"
+date: "27/10/2020"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ KLFDAPC demo pop str}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Using KLFDAPC to infer the population structue of SARS-Cov-2
+
+
+In this vignette, we demonstrate KLFDAPC for inference of the genetic structure of SARS-Cov-2. We used 3,736 SARS-Cov-2 samples obtained from China National Center for Bioinformation-2019 Novel Coronavirus Resource (2019nCoVR).
+
+
+The data have been converted to gds file stored in the extdata folder in the package library. As long as you have installed the package, you can get the data using the codes listed below.
+
+```{r, echo = FALSE, message = FALSE}
+knitr::opts_chunk$set(dev = "png", dev.args = list(type = "cairo-png"),collapse = TRUE,comment = "#",fig.width = 6,  fig.height = 5,fig.align = "center",
+                      fig.cap = "&nbsp;",results = "hold")
+```
+
+
+``````{r}
+library(KLFDAPC)
+
+f <- system.file('extdata',package='KLFDAPC')
+
+infile <- file.path(f, "2019-nCoV_total.gds")
+``````
+
+We have ignored the sample origin in this vignette. If you are interested in the details of which countries are they smapled from, you can check the China National Center for Bioinformation-2019 Novel Coronavirus Resource (2019nCoVR) or check the raw data labels. However, here, in this analysis, we just demonstrate how to use KLFDAPC to infer the population structue. We generate random group labels for viruses.
+
+``````{r}
+y1=rep(1,times=1736)
+y2=rep(2,times=2000)
+
+y=rbind(as.matrix(y1),as.matrix(y2))
+
+y=as.factor(y)
+
+``````
+
+
+
+##### KLFDAPC Analysis with a Gaussian kernel
+
+We use a Gaussian kernel with a sigma = 5 to do the analysis. We filter the SNPs with a missing rate of 0.05, and MAF>0.05, and keep 20 PCs for kernel local discriminant analysis. We then produce the first three genetic features for visualizing the population structure. 
+
+``````{r}
+# Using Gaussian kernel
+# This will take longer than PCA, denpending on the number of samples and n.pcs. We will not show the results here. Users can test on their own clusters
+library(KLFDAPC)
+virus_klfdapc=KLFDAPC(infile,y,kernel=kernlab::rbfdot(sigma = 5),r=3,snp.id=NULL, maf=0.05, missing.rate=0.05,n.pc=20,tol=1e-30, num.thread=2,metric = "plain",prior = NULL)
+
+showfile.gds(closeall=TRUE)
+``````
+
+##### Plot the population structure of SARS-Cov-2
+
+``````{r figure 1,fig.height = 6, fig.width = 8, fig.align = "center"}
+plot(virus_klfdapc$KLFDAPC$Z[,1], virus_klfdapc$KLFDAPC$Z[,2], col=as.integer(y), xlab="KLFDA 2", ylab="KLFDA 1")
+legend("bottomright", legend=levels(y), pch="o", col=1:nlevels(y))
+
+``````
+
+
+## References
+
+Zhao WM, Song SH, Chen ML, et al. The 2019 novel coronavirus resource. Yi Chuan. 2020;42(2):212–221. doi:10.16288/j.yczz.20-030 [PMID: 32102777]
+
+Qin, X. 2020. KLFDAPC: Kernel Local Fisher Discriminant Analysis of Principal Components (KLFDAPC) for large genomic data. R package version 0.2.0.
+
+Qin, X., Gaggiotti, OE., Chiang, C.2020. Kernel Local Fisher Discriminant Analysis of Principal Components (KLFDAPC) significantly improves the accuracy of predicting geographic origin of individuals. In submission.
+
+
+

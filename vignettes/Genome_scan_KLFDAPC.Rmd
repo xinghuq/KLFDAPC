@@ -1,0 +1,140 @@
+---
+title: "Detecting signatures of selection using KLFDAPC"
+author: "Xinghu Qin"
+date: "27/10/2020"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ KLFDAPC demo }
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## KLFDAPC for detection of natural selection
+
+KLFDAPC has multiple advantages over the linear inference and linear discriminant analysis. The population structure inferred using KLFDAPC rectifies the limitation of linear population structure. Thereby, KLFDAPC could be helpful for correcting the genetic gradients (population stratification) in many aspects of population genetic studies, such as correction for geographic genetic structure in genome scan for detecting loci involved in adaptation, and in GWAS for identifying the signatures related to diseases or complex traits. We demonstrate an example using KLFDAPC to detect signatures related to local adaptation. In what follows, we illustrate the step-by-step implementation of genome scan using KLFDAPC. 
+
+In this vignette, we use a common implementation similar to PCA-based genome scan that reported by Patterson, N.,et al. 2006 and Luu, K., et al. 2017. However, in this implementation, the loci are weighted by correlation coefficients. We recommended users using more sophisticated implementation with high performance, such as DeepGenomeScan (Qin,X. et al. 2020). 
+
+```{r setup,echo = FALSE, message = FALSE, include=FALSE}
+knitr::opts_chunk$set(dev = "png", dev.args = list(type = "cairo-png"),collapse = TRUE,comment = "#",fig.width = 6,fig.height = 5,fig.align = "center", fig.cap = "&nbsp;",results = "hold")
+
+```
+
+Install packages and dependences
+
+```{r install,echo = FALSE, message = FALSE}
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+
+if (!requireNamespace("SNPRelate", quietly=TRUE))
+BiocManager::install("SNPRelate")
+
+if (!requireNamespace("KLFDAPC", quietly=TRUE))
+devtools::install_github("xinghuq/KLFDAPC")
+
+if (!requireNamespace("DA", quietly=TRUE))
+devtools::install_github("xinghuq/DA")
+
+```
+
+Our package uses the high performance parallel computation processed with SNPRelate. It is written by C++, and the data is stored in an efficient format, snpGDS format.   
+
+```{r library,echo = FALSE, message = FALSE}
+library(SNPRelate)
+library(KLFDAPC)
+```
+
+## Preparing data
+
+In this vignette, We use the human HapMap data (https://www.genome.gov/10001688/international-hapmap-project) to show how to detect loci involved in adaptation using KLFDAPC.
+
+Data preparation, we use the data that have already in GDS format stored in the library.
+
+```{r data, echo=FALSE,echo = FALSE, message = FALSE}
+# Open the GDS file
+genofile <- snpgdsOpen(snpgdsExampleFileName())
+# Get sample id
+sample.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
+# Get population information
+#   or pop_code <- scan("pop.txt", what=character())
+#   if it is stored in a text file "pop.txt"
+pop_code <- read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))
+
+# assume the order of sample IDs is as the same as population codes
+
+pop_code <- read.gdsn(index.gdsn(genofile, path="sample.annot/pop.group"))
+pop_code=factor(pop_code,levels=unique(pop_code))
+table(pop_code)
+
+set.seed(1000)
+
+# Try different LD thresholds for sensitivity analysis
+snpset <- snpgdsLDpruning(genofile, ld.threshold=0.2)
+# Get all selected snp id
+snpset.id <- unlist(unname(snpset))
+head(snpset.id)
+snpgdsClose(genofile)
+```
+
+## Doing KLFDAPC on genotype data with a Gaussian kernel
+
+We use a Gaussian kernel with sigma =5 to infer the population structure. After we obtain the genetic structure, we then use it to do genome scan.
+
+```{r, echo = FALSE, message = FALSE}
+showfile.gds(closeall=TRUE)
+klfdapcfile <- KLFDAPC(snpgdsExampleFileName(), y=pop_code, snp.id=snpset.id,n.pc = 3,kernel=kernlab::rbfdot(sigma = 5), r=5, num.thread=2)
+
+# Make a data.frame
+pop_str <- data.frame(sample.id = klfdapcfile$PCA$sample.id,
+    pop = factor(pop_code)[match(klfdapcfile$PCA$sample.id, sample.id)],
+    RD1 = klfdapcfile$KLFDAPC$Z[,1],    # the first reduced feature
+    RD2 =  klfdapcfile$KLFDAPC$Z[,2],    # the second reduced feature
+    stringsAsFactors = FALSE)
+head(pop_str)
+
+rownames(pop_str)=pop_str$sample.id
+```
+
+## Visualize the population structure 
+
+Project the genetic features onto a plane.
+
+```{r figure 1, echo=FALSE, fig.align="center", fig.height=6, fig.width=8, message=FALSE}
+plot(pop_str$RD1, pop_str$RD2, col=as.integer(pop_str$pop), xlab="RD 1", ylab="RD 2")
+legend("topright", legend=levels(pop_str$pop), pch="o", col=1:nlevels(pop_str$pop))
+```
+
+We then use the first two genetic features to do genome scan with KLFDAPT.
+
+?KLFDAPT to see the documentation. This process is handeled with a C++ function, which is faster then normal. Users can also set the parallel process by changing the paramters of num.threshold.
+
+```{r package,echo = FALSE, message = FALSE}
+showfile.gds(closeall=TRUE)
+# Get chromosome index
+genofile <- snpgdsOpen(snpgdsExampleFileName())
+chr <- read.gdsn(index.gdsn(genofile, "snp.chromosome"))
+klfdapcmat=as.matrix(pop_str[,-c(1:2)])
+### using the correlation to estimate the contribution of SNPs to the pop str (which is the same as PCA does )
+library(KLFDAPC)
+klfdapcscanqvalue <- KLFDAPT(klfdapcmat, genofile, n.RD=1:2)
+
+```
+
+```{r figure 2,fig.height = 6, fig.width = 8, fig.align = "center", echo = FALSE, message = FALSE}
+   plot(-log10(klfdapcscanqvalue$q.values$q.values), ylim=c(0,4), xlab="", ylab="-log(q-value)",col=chr, pch="+")
+   abline(h=2, col="blue")
+```
+
+
+
+## Reference
+
+Patterson, N., Price, A. L., & Reich, D. (2006). Population structure and eigenanalysis. PLoS genet, 2(12), e190.
+
+Luu, K., Bazin, E., & Blum, M. G. (2017). pcadapt: an R package to perform genome scans for selection based on principal component analysis. Molecular ecology resources, 17(1), 67-77.
+
+A High-performance Computing Toolset for Relatedness and Principal Component Analysis of SNP Data. Xiuwen Zheng; David Levine; Jess Shen; Stephanie M. Gogarten; Cathy Laurie; Bruce S. Weir. Bioinformatics 2012; doi: 10.1093/bioinformatics/bts606.
+
+R. A. Maronna and R. H. Zamar (2002) Robust estimates of location and dispersion of high-dimensional datasets. Technometrics 44 (4), 307–317.
+
+Wang, J., Zamar, R., Marazzi, A., Yohai, V., Salibian-Barrera, M., Maronna, R., ... & Maechler, M. (2017). robust: Port of the S+“Robust Library”. R package version 0.4-18. Available online at: https://CRAN. R-project. org/package= robust.
