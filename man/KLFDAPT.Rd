@@ -100,8 +100,6 @@ klfdapcscanqvalue <- KLFDAPT(klfdapcmat, genofile, n.RD=1:2)
 ###Mmanhattan plot
  plot(-log10(klfdapcscanqvalue$q.values$q.values), ylim=c(0,4), xlab="", ylab="-log(q-value)",col=chr, pch="+")
    abline(h=2, col="blue")
+ }
 
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }% use one of  RShowDoc("KEYWORDS")
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+
