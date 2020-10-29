@@ -78,7 +78,29 @@ qinxinghu@gmail.com
 \examples{
 ###Hap_map data
 ### Doing KLFDAPC, default kernel=kernlab::polydot(degree = 1, scale = 1, offset = 1)
-klfdapcfile <- KLFDAPC(snpgdsExampleFileName(), y=pop_code, snp.id=snpset.id,n.pc = 3, kernel=kernlab::polydot(degree = 1, scale = 1, offset = 1), r=5,num.thread=2)
+# Open the GDS file
+library(KLFDAPC)
+library(SNPRelate)
+genofile <- snpgdsOpen(snpgdsExampleFileName())
+# Get sample id
+sample.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
+# Get population information
+
+pop_code <- read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))
+
+# assume the order of sample IDs is as the same as population codes
+
+pop_code <- read.gdsn(index.gdsn(genofile, path="sample.annot/pop.group"))
+pop_code=factor(pop_code,levels=unique(pop_code))
+# fliter LD thresholds for sensitivity analysis
+snpset <- snpgdsLDpruning(genofile, ld.threshold=0.2)
+
+# Get all selected snp id
+snpset.id <- unlist(unname(snpset))
+
+snpgdsClose(genofile)
+
+klfdapcfile <- KLFDAPC(snpgdsExampleFileName(), y=pop_code, snp.id=snpset.id,n.pc = 3, kernel=kernlab::rbfdot(sigma = 5), r=5,num.thread=2)
 
 # Make a data.frame
 pop_str <- data.frame(sample.id = klfdapcfile$PCA$sample.id,
@@ -89,6 +111,7 @@ pop_str <- data.frame(sample.id = klfdapcfile$PCA$sample.id,
 head(pop_str)
 
 rownames(pop_str)=pop_str$sample.id
+
 genofile <- snpgdsOpen(snpgdsExampleFileName())
 chr <- read.gdsn(index.gdsn(genofile, "snp.chromosome"))
 klfdapcmat=as.matrix(pop_str[,-c(1:2)])
@@ -96,10 +119,15 @@ klfdapcmat=as.matrix(pop_str[,-c(1:2)])
 ### using the correlation to estimate the contribution of SNPs to the pop str (which is the same as PCA does )
 
 klfdapcscanqvalue <- KLFDAPT(klfdapcmat, genofile, n.RD=1:2)
-
+snpgdsClose(genofile)
 ###Mmanhattan plot
+
  plot(-log10(klfdapcscanqvalue$q.values$q.values), ylim=c(0,4), xlab="", ylab="-log(q-value)",col=chr, pch="+")
    abline(h=2, col="blue")
- }
 
+
+}
+
+% Add one or more standard keywords, see file 'KEYWORDS' in the
+% R documentation directory.
 
