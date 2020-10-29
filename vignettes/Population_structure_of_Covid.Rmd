@@ -45,29 +45,37 @@ y=as.factor(y)
 
 
 
-##### KLFDAPC Analysis with a Gaussian kernel
+## KLFDAPC Analysis with a Gaussian kernel
 
 We use a Gaussian kernel with a sigma = 5 to do the analysis. We filter the SNPs with a missing rate of 0.05, and MAF>0.05, and keep 20 PCs for kernel local discriminant analysis. We then produce the first three genetic features for visualizing the population structure. 
 
-``````{r}
+``````{r, message = FALSE}
 # Using Gaussian kernel
+
 # This will take longer than PCA, denpending on the number of samples and n.pcs. We will not show the results here. Users can test on their own clusters
-library(KLFDAPC)
+
+
 virus_klfdapc=KLFDAPC(infile,y,kernel=kernlab::rbfdot(sigma = 5),r=3,snp.id=NULL, maf=0.05, missing.rate=0.05,n.pc=20,tol=1e-30, num.thread=2,metric = "plain",prior = NULL)
 
 showfile.gds(closeall=TRUE)
-``````
 
-##### Plot the population structure of SARS-Cov-2
+```
+
+
+### Plot the population structure of SARS-Cov-2
+
 
 ``````{r figure 1,fig.height = 6, fig.width = 8, fig.align = "center"}
+
 plot(virus_klfdapc$KLFDAPC$Z[,1], virus_klfdapc$KLFDAPC$Z[,2], col=as.integer(y), xlab="KLFDA 2", ylab="KLFDA 1")
 legend("bottomright", legend=levels(y), pch="o", col=1:nlevels(y))
 
 ``````
 
 
-## References
+
+### References
+
 
 Zhao WM, Song SH, Chen ML, et al. The 2019 novel coronavirus resource. Yi Chuan. 2020;42(2):212–221. doi:10.16288/j.yczz.20-030 [PMID: 32102777]
 

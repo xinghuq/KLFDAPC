@@ -21,36 +21,50 @@ knitr::opts_chunk$set(dev = "png", dev.args = list(type = "cairo-png"),collapse 
 Loading packages into your R environment.
 
 ```{r, message = FALSE}
+
 library(KLFDAPC)
+
 library(PCAviz)
+
 library(ggplot2)
+
 library(cowplot)
+
 ```
 
-## Load the data 
+
+### Load the data 
+
 
 The dataset is already pre-processed data containing the computed PCs of RegMap data. We now load the data and compute the kernel local genetic features.
 
 Load the data and print a summary of the PCs of RegMap data.
 
-```{r}
+```{r, message = FALSE}
 data(regmappcs)
 
 ### we have to remove the not well represented individuals, which one country only has one individuals.
 table(regmappcs$country)
+
 regmapviz=pcaviz(dat = regmappcs)
+
 summary(regmapviz)
+
 ### remove unrepresented individuals
 regmapviz <- subset(regmapviz,!(country == "AZE" | country == "CPV"| country == "DEN"| country == "GEO"| country == "IND"| country == "LIB"| country == "NOR"| country == "NZL")) 
+
 ### 25 countries
 regmapviz$data$country=factor(regmapviz$data$country,levels = unique(regmapviz$data$country))
+
 regmapviz1=pcaviz(dat = regmapviz$data)
 
 ```
 
-## Kernel Local Fisher Analysis of Principal Components
 
-```{r}
+### Kernel Local Fisher Discriminant Analysis of Principal Components
+
+
+```{r, message = FALSE}
 
 ### The first 10 PCs, we will produce 3 genetic features for visualization
 normalize <- function(x) {
@@ -61,40 +75,50 @@ return ((x - min(x)) / (max(x) - min(x)))
 pcanorm=apply(regmapviz1$data[,12:21], 2, normalize)
 
 reg_kmat <- kmatrixGauss(pcanorm,sigma=10)
+
 reg_klfdapc=KLFDA(reg_kmat, y=regmapviz1$data$country, r=3, knn = 1)
 
 ```
 
-##### Visualization of the population structure
+
+### Visualization of the population structure
+
 
 We can project the the first two genetic features onto the plane, with the samples labeled by the collecting country.
 
 ``````{r figure 1,fig.height = 6, fig.width = 8, fig.align = "center"}
 
 regmapviz1$data$PC1=reg_klfdapc$Z[,1]
+
 regmapviz1$data$PC2=reg_klfdapc$Z[,2]
 
 plot(regmapviz1,coord=c("PC1","PC2"),group =NULL,draw.points =FALSE,label = "country",plot.title=" KLFDAPC 1 vs. KLFDAPC 2")+xlab("KLFDAPC 1")+ylab("KLFDAPC 2")
 
 ```
 
-## Genetic gradients along longitide and latitude
+
+### Genetic gradients along longitide and latitude
+
 
 We would like to see how are the genetic gradients related to geography by looking at the relationships between geography (longitude, latitude) and the genetic gradients.
 
 ```{r, fig.width = 12, fig.height = 5}
+### Plot the KLFDAPC 2 vs. long
 plot1 <- plot(regmapviz1,coord=c("PC1","longitude"),draw.points = TRUE,color = "longitude",group = NULL,plot.title=" KLFDAPC 1 vs. long")+xlab("KLFDAPC 1")+ylab("long")
+### Plot the KLFDAPC 2 vs. lat
 plot2 <- plot(regmapviz1,coord=c("PC2","latitude"),draw.points = TRUE,color = "latitude",group = NULL,plot.title=" KLFDAPC 2 vs. lat")+xlab("KLFDAPC 1")+ylab("lat")
+
 plot_grid(plot1,plot2,labels = c("A","B"))
+
 ```
 
 
-## Reference
+
+### Reference
+
 
 Horton, M. W., Hancock, A. M., Huang, Y. S., Toomajian, C., Atwell, S., Auton, A., ... & Nordborg, M. (2012). Genome-wide patterns of genetic variation in worldwide Arabidopsis thaliana accessions from the RegMap panel. Nature genetics, 44(2), 212-216.
 
-
-## Citation
 
 Qin, X. 2020. KLFDAPC: Kernel Local Fisher Discriminant Analysis of Principal Components (KLFDAPC) for large genomic data. R package version 0.2.0.
 

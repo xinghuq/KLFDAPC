@@ -22,7 +22,7 @@ knitr::opts_chunk$set(dev = "png", dev.args = list(type = "cairo-png"),collapse 
 
 Install packages and dependences
 
-```{r install,echo = FALSE, message = FALSE}
+```{r install,message = FALSE}
 if (!requireNamespace("BiocManager", quietly=TRUE))
     install.packages("BiocManager")
 
@@ -39,25 +39,26 @@ devtools::install_github("xinghuq/DA")
 
 Our package uses the high performance parallel computation processed with SNPRelate. It is written by C++, and the data is stored in an efficient format, snpGDS format.   
 
-```{r library,echo = FALSE, message = FALSE}
+```{r library,message = FALSE}
 library(SNPRelate)
 library(KLFDAPC)
 ```
 
-## Preparing data
+
+### Preparing data
+
 
 In this vignette, We use the human HapMap data (https://www.genome.gov/10001688/international-hapmap-project) to show how to detect loci involved in adaptation using KLFDAPC.
 
 Data preparation, we use the data that have already in GDS format stored in the library.
 
-```{r data, echo=FALSE,echo = FALSE, message = FALSE}
+```{r data, message = FALSE}
 # Open the GDS file
 genofile <- snpgdsOpen(snpgdsExampleFileName())
 # Get sample id
 sample.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
 # Get population information
-#   or pop_code <- scan("pop.txt", what=character())
-#   if it is stored in a text file "pop.txt"
+
 pop_code <- read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))
 
 # assume the order of sample IDs is as the same as population codes
@@ -68,20 +69,26 @@ table(pop_code)
 
 set.seed(1000)
 
-# Try different LD thresholds for sensitivity analysis
+# fliter LD thresholds for sensitivity analysis
 snpset <- snpgdsLDpruning(genofile, ld.threshold=0.2)
+
 # Get all selected snp id
 snpset.id <- unlist(unname(snpset))
+
 head(snpset.id)
+
 snpgdsClose(genofile)
 ```
 
-## Doing KLFDAPC on genotype data with a Gaussian kernel
+
+### Doing KLFDAPC on genotype data with a Gaussian kernel
+
 
 We use a Gaussian kernel with sigma =5 to infer the population structure. After we obtain the genetic structure, we then use it to do genome scan.
 
-```{r, echo = FALSE, message = FALSE}
+```{r, message = FALSE}
 showfile.gds(closeall=TRUE)
+
 klfdapcfile <- KLFDAPC(snpgdsExampleFileName(), y=pop_code, snp.id=snpset.id,n.pc = 3,kernel=kernlab::rbfdot(sigma = 5), r=5, num.thread=2)
 
 # Make a data.frame
@@ -90,44 +97,62 @@ pop_str <- data.frame(sample.id = klfdapcfile$PCA$sample.id,
     RD1 = klfdapcfile$KLFDAPC$Z[,1],    # the first reduced feature
     RD2 =  klfdapcfile$KLFDAPC$Z[,2],    # the second reduced feature
     stringsAsFactors = FALSE)
+
 head(pop_str)
 
 rownames(pop_str)=pop_str$sample.id
 ```
 
-## Visualize the population structure 
+
+### Visualize the population structure 
+
 
 Project the genetic features onto a plane.
 
-```{r figure 1, echo=FALSE, fig.align="center", fig.height=6, fig.width=8, message=FALSE}
+```{r figure 1, fig.align="center", fig.height=6, fig.width=8, message=FALSE}
 plot(pop_str$RD1, pop_str$RD2, col=as.integer(pop_str$pop), xlab="RD 1", ylab="RD 2")
 legend("topright", legend=levels(pop_str$pop), pch="o", col=1:nlevels(pop_str$pop))
 ```
 
-We then use the first two genetic features to do genome scan with KLFDAPT.
 
-?KLFDAPT to see the documentation. This process is handeled with a C++ function, which is faster then normal. Users can also set the parallel process by changing the paramters of num.threshold.
+### Doing genome scan using KLFDAPT
 
-```{r package,echo = FALSE, message = FALSE}
+
+After we choose the genetic features, we then use the genetic features to do genome scan with KLFDAPT.
+
+?KLFDAPT to see the documentation. This genome scan is handeled with a C++ function, which is faster than other implementation. Users can also set the parallel process by changing the paramters of num.threshold.
+
+```{r package, message = FALSE}
+
 showfile.gds(closeall=TRUE)
+
 # Get chromosome index
+
 genofile <- snpgdsOpen(snpgdsExampleFileName())
+
 chr <- read.gdsn(index.gdsn(genofile, "snp.chromosome"))
+
 klfdapcmat=as.matrix(pop_str[,-c(1:2)])
+
+### Doing genome scan
 ### using the correlation to estimate the contribution of SNPs to the pop str (which is the same as PCA does )
-library(KLFDAPC)
+
 klfdapcscanqvalue <- KLFDAPT(klfdapcmat, genofile, n.RD=1:2)
 
 ```
 
-```{r figure 2,fig.height = 6, fig.width = 8, fig.align = "center", echo = FALSE, message = FALSE}
-   plot(-log10(klfdapcscanqvalue$q.values$q.values), ylim=c(0,4), xlab="", ylab="-log(q-value)",col=chr, pch="+")
+### Plot manhattan plot
+
+```{r figure 2,fig.height = 6, fig.width = 8, fig.align = "center", message = FALSE}
+###plot manhattan plot 
+ plot(-log10(klfdapcscanqvalue$q.values$q.values), ylim=c(0,4), xlab="", ylab="-log(q-value)",col=chr, pch="+")
    abline(h=2, col="blue")
 ```
 
 
 
-## Reference
+### Reference
+
 
 Patterson, N., Price, A. L., & Reich, D. (2006). Population structure and eigenanalysis. PLoS genet, 2(12), e190.
 
