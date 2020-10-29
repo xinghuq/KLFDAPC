@@ -13,8 +13,8 @@
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/cosmo/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous" />
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script>
 
@@ -98,7 +98,7 @@
   <a href="../articles/index.html">Articles</a>
 </li>
 <li>
-  <a href="../reference/index.html">Functions</a>
+  <a href="../reference/index.html">Manual</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -218,9 +218,75 @@
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='co'>###Hap_map data</span>
 <span class='co'>### Doing KLFDAPC, default kernel=kernlab::polydot(degree = 1, scale = 1, offset = 1)</span>
-<span class='va'>klfdapcfile</span> <span class='op'>&lt;-</span> <span class='fu'><a href='KLFDAPC.html'>KLFDAPC</a></span><span class='op'>(</span><span class='fu'>snpgdsExampleFileName</span><span class='op'>(</span><span class='op'>)</span>, y<span class='op'>=</span><span class='va'>pop_code</span>, snp.id<span class='op'>=</span><span class='va'>snpset.id</span>,n.pc <span class='op'>=</span> <span class='fl'>3</span>, kernel<span class='op'>=</span><span class='fu'>kernlab</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/kernlab/man/dots.html'>polydot</a></span><span class='op'>(</span>degree <span class='op'>=</span> <span class='fl'>1</span>, scale <span class='op'>=</span> <span class='fl'>1</span>, offset <span class='op'>=</span> <span class='fl'>1</span><span class='op'>)</span>, r<span class='op'>=</span><span class='fl'>5</span>,num.thread<span class='op'>=</span><span class='fl'>2</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span class='message'>Loading required package: SNPRelate</span></div><div class='output co'>#&gt; <span class='message'>Loading required package: gdsfmt</span></div><div class='output co'>#&gt; <span class='message'>SNPRelate -- supported by Streaming SIMD Extensions 2 (SSE2)</span></div><div class='output co'>#&gt; <span class='error'>Error: object 'snpset.id' not found</span></div><div class='input'>
-<span class='co'># Make a data.frame</span>
+<span class='co'># Open the GDS file</span>
+<span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://github.com/xinghuq/KLFDAPC'>KLFDAPC</a></span><span class='op'>)</span>
+<span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='http://github.com/zhengxwen/SNPRelate'>SNPRelate</a></span><span class='op'>)</span>
+</div><div class='output co'>#&gt; <span class='message'>Loading required package: gdsfmt</span></div><div class='output co'>#&gt; <span class='message'>SNPRelate -- supported by Streaming SIMD Extensions 2 (SSE2)</span></div><div class='input'><span class='va'>genofile</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/pkg/SNPRelate/man/snpgdsOpen.html'>snpgdsOpen</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/pkg/SNPRelate/man/snpgdsExampleFileName.html'>snpgdsExampleFileName</a></span><span class='op'>(</span><span class='op'>)</span><span class='op'>)</span>
+<span class='co'># Get sample id</span>
+<span class='va'>sample.id</span> <span class='op'>&lt;-</span> <span class='fu'>read.gdsn</span><span class='op'>(</span><span class='fu'>index.gdsn</span><span class='op'>(</span><span class='va'>genofile</span>, <span class='st'>"sample.id"</span><span class='op'>)</span><span class='op'>)</span>
+<span class='co'># Get population information</span>
+
+<span class='va'>pop_code</span> <span class='op'>&lt;-</span> <span class='fu'>read.gdsn</span><span class='op'>(</span><span class='fu'>index.gdsn</span><span class='op'>(</span><span class='va'>genofile</span>, <span class='st'>"sample.annot/pop.group"</span><span class='op'>)</span><span class='op'>)</span>
+
+<span class='co'># assume the order of sample IDs is as the same as population codes</span>
+
+<span class='va'>pop_code</span> <span class='op'>&lt;-</span> <span class='fu'>read.gdsn</span><span class='op'>(</span><span class='fu'>index.gdsn</span><span class='op'>(</span><span class='va'>genofile</span>, path<span class='op'>=</span><span class='st'>"sample.annot/pop.group"</span><span class='op'>)</span><span class='op'>)</span>
+<span class='va'>pop_code</span><span class='op'>=</span><span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>pop_code</span>,levels<span class='op'>=</span><span class='fu'><a href='https://rdrr.io/r/base/unique.html'>unique</a></span><span class='op'>(</span><span class='va'>pop_code</span><span class='op'>)</span><span class='op'>)</span>
+<span class='co'># fliter LD thresholds for sensitivity analysis</span>
+<span class='va'>snpset</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/pkg/SNPRelate/man/snpgdsLDpruning.html'>snpgdsLDpruning</a></span><span class='op'>(</span><span class='va'>genofile</span>, ld.threshold<span class='op'>=</span><span class='fl'>0.2</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; SNP pruning based on LD:
+#&gt; Excluding 365 SNPs on non-autosomes
+#&gt; Excluding 1 SNP (monomorphic: TRUE, MAF: NaN, missing rate: NaN)
+#&gt; Working space: 279 samples, 8,722 SNPs
+#&gt;     using 1 (CPU) core
+#&gt;     sliding window: 500,000 basepairs, Inf SNPs
+#&gt;     |LD| threshold: 0.2
+#&gt;     method: composite
+#&gt; Chromosome 1: 75.84%, 543/716
+#&gt; Chromosome 2: 72.78%, 540/742
+#&gt; Chromosome 3: 74.38%, 453/609
+#&gt; Chromosome 4: 73.49%, 413/562
+#&gt; Chromosome 5: 76.33%, 432/566
+#&gt; Chromosome 6: 75.40%, 426/565
+#&gt; Chromosome 7: 75.42%, 356/472
+#&gt; Chromosome 8: 71.31%, 348/488
+#&gt; Chromosome 9: 77.64%, 323/416
+#&gt; Chromosome 10: 74.33%, 359/483
+#&gt; Chromosome 11: 77.18%, 345/447
+#&gt; Chromosome 12: 76.35%, 326/427
+#&gt; Chromosome 13: 75.87%, 261/344
+#&gt; Chromosome 14: 76.60%, 216/282
+#&gt; Chromosome 15: 76.34%, 200/262
+#&gt; Chromosome 16: 73.38%, 204/278
+#&gt; Chromosome 17: 73.91%, 153/207
+#&gt; Chromosome 18: 74.44%, 198/266
+#&gt; Chromosome 19: 85.00%, 102/120
+#&gt; Chromosome 20: 71.62%, 164/229
+#&gt; Chromosome 21: 75.40%, 95/126
+#&gt; Chromosome 22: 77.59%, 90/116
+#&gt; 6,547 markers are selected in total.</div><div class='input'>
+<span class='co'># Get all selected snp id</span>
+<span class='va'>snpset.id</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/unlist.html'>unlist</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/unname.html'>unname</a></span><span class='op'>(</span><span class='va'>snpset</span><span class='op'>)</span><span class='op'>)</span>
+
+<span class='fu'><a href='https://rdrr.io/pkg/SNPRelate/man/snpgdsClose.html'>snpgdsClose</a></span><span class='op'>(</span><span class='va'>genofile</span><span class='op'>)</span>
+
+<span class='va'>klfdapcfile</span> <span class='op'>&lt;-</span> <span class='fu'><a href='KLFDAPC.html'>KLFDAPC</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/pkg/SNPRelate/man/snpgdsExampleFileName.html'>snpgdsExampleFileName</a></span><span class='op'>(</span><span class='op'>)</span>, y<span class='op'>=</span><span class='va'>pop_code</span>, snp.id<span class='op'>=</span><span class='va'>snpset.id</span>,n.pc <span class='op'>=</span> <span class='fl'>3</span>, kernel<span class='op'>=</span><span class='fu'>kernlab</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/kernlab/man/dots.html'>polydot</a></span><span class='op'>(</span>degree <span class='op'>=</span> <span class='fl'>1</span>, scale <span class='op'>=</span> <span class='fl'>1</span>, offset <span class='op'>=</span> <span class='fl'>1</span><span class='op'>)</span>, r<span class='op'>=</span><span class='fl'>5</span>,num.thread<span class='op'>=</span><span class='fl'>2</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; Principal Component Analysis (PCA) on genotypes:
+#&gt; Excluding 2,541 SNPs (non-autosomes or non-selection)
+#&gt; Excluding 0 SNP (monomorphic: TRUE, MAF: NaN, missing rate: NaN)
+#&gt; Working space: 279 samples, 6,547 SNPs
+#&gt;     using 2 (CPU) cores
+#&gt; PCA:    the sum of all selected genotypes (0,1,2) = 1829478
+#&gt; CPU capabilities: Double-Precision SSE2
+#&gt; Thu Oct 29 00:40:43 2020    (internal increment: 1276)
+#&gt; [..................................................]  0%, ETC: ---        [==================================================] 100%, completed, 0s
+#&gt; Thu Oct 29 00:40:43 2020    Begin (eigenvalues and eigenvectors)
+#&gt; Thu Oct 29 00:40:44 2020    Done.
+#&gt; [1] "Doing KLFDAPC"</div><div class='output co'>#&gt; <span class='warning'>Warning: NaNs produced</span></div><div class='output co'>#&gt; <span class='message'>Loading required package: WMDB</span></div><div class='output co'>#&gt; <span class='message'>Loading required package: DA</span></div><div class='output co'>#&gt; <span class='message'></span>
+#&gt; <span class='message'>Attaching package: 'DA'</span></div><div class='output co'>#&gt; <span class='message'>The following object is masked from 'package:KLFDAPC':</span>
+#&gt; <span class='message'></span>
+#&gt; <span class='message'>    KLFDA</span></div><div class='output co'>#&gt; <span class='warning'>Warning: no non-missing arguments to min; returning Inf</span></div><div class='output co'>#&gt; <span class='message'>Loading required package: klaR</span></div><div class='output co'>#&gt; <span class='warning'>Warning: package 'klaR' was built under R version 3.6.3</span></div><div class='output co'>#&gt; <span class='message'>Loading required package: MASS</span></div><div class='output co'>#&gt; <span class='warning'>Warning: collapsing to unique 'x' values</span></div><div class='output co'>#&gt; <span class='warning'>Warning: collapsing to unique 'x' values</span></div><div class='output co'>#&gt; <span class='warning'>Warning: collapsing to unique 'x' values</span></div><div class='output co'>#&gt; <span class='warning'>Warning: collapsing to unique 'x' values</span></div><div class='output co'>#&gt; <span class='error'>Error in density.default(xx, ...): 'x' contains missing values</span></div><div class='input'><span class='fu'><a href='https://rdrr.io/pkg/SNPRelate/man/snpgdsClose.html'>snpgdsClose</a></span><span class='op'>(</span><span class='va'>genofile</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; <span class='error'>Error in closefn.gds(gdsobj): The GDS file is closed or uninitialized.</span></div><div class='input'><span class='co'># Make a data.frame</span>
 <span class='va'>pop_str</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/data.frame.html'>data.frame</a></span><span class='op'>(</span>sample.id <span class='op'>=</span> <span class='va'>klfdapcfile</span><span class='op'>$</span><span class='va'>PCA</span><span class='op'>$</span><span class='va'>sample.id</span>,
     pop <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>pop_code</span><span class='op'>)</span><span class='op'>[</span><span class='fu'><a href='https://rdrr.io/r/base/match.html'>match</a></span><span class='op'>(</span><span class='va'>klfdapcfile</span><span class='op'>$</span><span class='va'>PCA</span><span class='op'>$</span><span class='va'>sample.id</span>, <span class='va'>sample.id</span><span class='op'>)</span><span class='op'>]</span>,
     RD1 <span class='op'>=</span> <span class='va'>klfdapcfile</span><span class='op'>$</span><span class='va'>KLFDAPC</span><span class='op'>$</span><span class='va'>Z</span><span class='op'>[</span>,<span class='fl'>1</span><span class='op'>]</span>,    <span class='co'># the first reduced feature</span>
@@ -229,18 +295,22 @@
 </div><div class='output co'>#&gt; <span class='error'>Error in data.frame(sample.id = klfdapcfile$PCA$sample.id, pop = factor(pop_code)[match(klfdapcfile$PCA$sample.id,     sample.id)], RD1 = klfdapcfile$KLFDAPC$Z[, 1], RD2 = klfdapcfile$KLFDAPC$Z[,     2], stringsAsFactors = FALSE): object 'klfdapcfile' not found</span></div><div class='input'><span class='fu'><a href='https://rdrr.io/r/utils/head.html'>head</a></span><span class='op'>(</span><span class='va'>pop_str</span><span class='op'>)</span>
 </div><div class='output co'>#&gt; <span class='error'>Error in head(pop_str): object 'pop_str' not found</span></div><div class='input'>
 <span class='fu'><a href='https://rdrr.io/r/base/colnames.html'>rownames</a></span><span class='op'>(</span><span class='va'>pop_str</span><span class='op'>)</span><span class='op'>=</span><span class='va'>pop_str</span><span class='op'>$</span><span class='va'>sample.id</span>
-</div><div class='output co'>#&gt; <span class='error'>Error in eval(expr, envir, enclos): object 'pop_str' not found</span></div><div class='input'><span class='va'>genofile</span> <span class='op'>&lt;-</span> <span class='fu'>snpgdsOpen</span><span class='op'>(</span><span class='fu'>snpgdsExampleFileName</span><span class='op'>(</span><span class='op'>)</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span class='error'>Error in openfn.gds(filename, readonly, allow.duplicate = allow.duplicate,     allow.fork = allow.fork): The file 'C:\Users\xq5\R\R-3.6.1\library\SNPRelate\extdata\hapmap_geno.gds' has been created or opened.</span></div><div class='input'><span class='va'>chr</span> <span class='op'>&lt;-</span> <span class='fu'>read.gdsn</span><span class='op'>(</span><span class='fu'>index.gdsn</span><span class='op'>(</span><span class='va'>genofile</span>, <span class='st'>"snp.chromosome"</span><span class='op'>)</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span class='error'>Error in index.gdsn(genofile, "snp.chromosome"): object 'genofile' not found</span></div><div class='input'><span class='va'>klfdapcmat</span><span class='op'>=</span><span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>as.matrix</a></span><span class='op'>(</span><span class='va'>pop_str</span><span class='op'>[</span>,<span class='op'>-</span><span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>2</span><span class='op'>)</span><span class='op'>]</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; <span class='error'>Error in eval(expr, envir, enclos): object 'pop_str' not found</span></div><div class='input'>
+<span class='va'>genofile</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/pkg/SNPRelate/man/snpgdsOpen.html'>snpgdsOpen</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/pkg/SNPRelate/man/snpgdsExampleFileName.html'>snpgdsExampleFileName</a></span><span class='op'>(</span><span class='op'>)</span><span class='op'>)</span>
+<span class='va'>chr</span> <span class='op'>&lt;-</span> <span class='fu'>read.gdsn</span><span class='op'>(</span><span class='fu'>index.gdsn</span><span class='op'>(</span><span class='va'>genofile</span>, <span class='st'>"snp.chromosome"</span><span class='op'>)</span><span class='op'>)</span>
+<span class='va'>klfdapcmat</span><span class='op'>=</span><span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>as.matrix</a></span><span class='op'>(</span><span class='va'>pop_str</span><span class='op'>[</span>,<span class='op'>-</span><span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>2</span><span class='op'>)</span><span class='op'>]</span><span class='op'>)</span>
 </div><div class='output co'>#&gt; <span class='error'>Error in as.matrix(pop_str[, -c(1:2)]): object 'pop_str' not found</span></div><div class='input'>
 <span class='co'>### using the correlation to estimate the contribution of SNPs to the pop str (which is the same as PCA does )</span>
 
 <span class='va'>klfdapcscanqvalue</span> <span class='op'>&lt;-</span> <span class='fu'>KLFDAPT</span><span class='op'>(</span><span class='va'>klfdapcmat</span>, <span class='va'>genofile</span>, n.RD<span class='op'>=</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>2</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span class='error'>Error: object 'klfdapcmat' not found</span></div><div class='input'>
+</div><div class='output co'>#&gt; <span class='error'>Error: object 'klfdapcmat' not found</span></div><div class='input'><span class='fu'><a href='https://rdrr.io/pkg/SNPRelate/man/snpgdsClose.html'>snpgdsClose</a></span><span class='op'>(</span><span class='va'>genofile</span><span class='op'>)</span>
 <span class='co'>###Mmanhattan plot</span>
+
  <span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span><span class='op'>(</span><span class='op'>-</span><span class='fu'><a href='https://rdrr.io/r/base/Log.html'>log10</a></span><span class='op'>(</span><span class='va'>klfdapcscanqvalue</span><span class='op'>$</span><span class='va'>q.values</span><span class='op'>$</span><span class='va'>q.values</span><span class='op'>)</span>, ylim<span class='op'>=</span><span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0</span>,<span class='fl'>4</span><span class='op'>)</span>, xlab<span class='op'>=</span><span class='st'>""</span>, ylab<span class='op'>=</span><span class='st'>"-log(q-value)"</span>,col<span class='op'>=</span><span class='va'>chr</span>, pch<span class='op'>=</span><span class='st'>"+"</span><span class='op'>)</span>
 </div><div class='output co'>#&gt; <span class='error'>Error in plot(-log10(klfdapcscanqvalue$q.values$q.values), ylim = c(0,     4), xlab = "", ylab = "-log(q-value)", col = chr, pch = "+"): object 'klfdapcscanqvalue' not found</span></div><div class='input'>   <span class='fu'><a href='https://rdrr.io/r/graphics/abline.html'>abline</a></span><span class='op'>(</span>h<span class='op'>=</span><span class='fl'>2</span>, col<span class='op'>=</span><span class='st'>"blue"</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span class='error'>Error in int_abline(a = a, b = b, h = h, v = v, untf = untf, ...): plot.new has not been called yet</span></div></pre>
+</div><div class='output co'>#&gt; <span class='error'>Error in int_abline(a = a, b = b, h = h, v = v, untf = untf, ...): plot.new has not been called yet</span></div><div class='input'>
+
+</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

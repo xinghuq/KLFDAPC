@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Population structure of Regmap data • KLFDAPC</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/cosmo/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
@@ -50,7 +50,7 @@
   <a href="../articles/index.html">Articles</a>
 </li>
 <li>
-  <a href="../reference/index.html">Functions</a>
+  <a href="../reference/index.html">Manual</a>
 </li>
       </ul>
 <ul class="nav navbar-nav navbar-right">
@@ -91,14 +91,17 @@
 <p>In this vignette, we demonstrate KLFDAPC for visualizing populartion structure of Regmap dataset (<em>Arabidopsis thaliana</em>) (Horton,et al., 2012). The reduced features of KLFDAPC retrive the geographic origins of the <em>Arabidopsis thaliana</em>. This is also a tpyical example for recapitulating the geographic origin of individuals using KLFDAPC.</p>
 <p>Loading packages into your R environment.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit">
+
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/xinghuq/KLFDAPC">KLFDAPC</a></span><span class="op">)</span>
+
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://github.com/NovembreLab/PCAviz">PCAviz</a></span><span class="op">)</span>
+
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
+
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://wilkelab.org/cowplot">cowplot</a></span><span class="op">)</span></pre></div>
-</div>
-<div id="load-the-data" class="section level2">
-<h2 class="hasAnchor">
-<a href="#load-the-data" class="anchor"></a>Load the data</h2>
+<div id="load-the-data" class="section level3">
+<h3 class="hasAnchor">
+<a href="#load-the-data" class="anchor"></a>Load the data</h3>
 <p>The dataset is already pre-processed data containing the computed PCs of RegMap data. We now load the data and compute the kernel local genetic features.</p>
 <p>Load the data and print a summary of the PCs of RegMap data.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit">
@@ -106,12 +109,17 @@
 
 <span class="co">### we have to remove the not well represented individuals, which one country only has one individuals.</span>
 <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">regmappcs</span><span class="op">$</span><span class="va">country</span><span class="op">)</span>
+
 <span class="va">regmapviz</span><span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/PCAviz/man/pcaviz.html">pcaviz</a></span><span class="op">(</span>dat <span class="op">=</span> <span class="va">regmappcs</span><span class="op">)</span>
+
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">regmapviz</span><span class="op">)</span>
+
 <span class="co">### remove unrepresented individuals</span>
 <span class="va">regmapviz</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">regmapviz</span>,<span class="op">!</span><span class="op">(</span><span class="va">country</span> <span class="op">==</span> <span class="st">"AZE"</span> <span class="op">|</span> <span class="va">country</span> <span class="op">==</span> <span class="st">"CPV"</span><span class="op">|</span> <span class="va">country</span> <span class="op">==</span> <span class="st">"DEN"</span><span class="op">|</span> <span class="va">country</span> <span class="op">==</span> <span class="st">"GEO"</span><span class="op">|</span> <span class="va">country</span> <span class="op">==</span> <span class="st">"IND"</span><span class="op">|</span> <span class="va">country</span> <span class="op">==</span> <span class="st">"LIB"</span><span class="op">|</span> <span class="va">country</span> <span class="op">==</span> <span class="st">"NOR"</span><span class="op">|</span> <span class="va">country</span> <span class="op">==</span> <span class="st">"NZL"</span><span class="op">)</span><span class="op">)</span> 
+
 <span class="co">### 25 countries</span>
 <span class="va">regmapviz</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">country</span><span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">regmapviz</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">country</span>,levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">regmapviz</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">country</span><span class="op">)</span><span class="op">)</span>
+
 <span class="va">regmapviz1</span><span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/PCAviz/man/pcaviz.html">pcaviz</a></span><span class="op">(</span>dat <span class="op">=</span> <span class="va">regmapviz</span><span class="op">$</span><span class="va">data</span><span class="op">)</span>
 <span class="co"># </span>
 <span class="co"># AUT AZE BEL CAN CPV CZE DEN ESP FIN FRA GEO GER IND IRL ITA JPN KAZ LIB LTU NED </span>
@@ -143,9 +151,9 @@
 <span class="co">#  nativename 1307 &lt;NA&gt; </span>
 <span class="co">#  firstname  1307 &lt;NA&gt;</span></pre></div>
 </div>
-<div id="kernel-local-fisher-analysis-of-principal-components" class="section level2">
-<h2 class="hasAnchor">
-<a href="#kernel-local-fisher-analysis-of-principal-components" class="anchor"></a>Kernel Local Fisher Analysis of Principal Components</h2>
+<div id="kernel-local-fisher-discriminant-analysis-of-principal-components" class="section level3">
+<h3 class="hasAnchor">
+<a href="#kernel-local-fisher-discriminant-analysis-of-principal-components" class="anchor"></a>Kernel Local Fisher Discriminant Analysis of Principal Components</h3>
 <div class="sourceCode" id="cb3"><pre class="downlit">
 
 <span class="co">### The first 10 PCs, we will produce 3 genetic features for visualization</span>
@@ -157,20 +165,17 @@
 <span class="va">pcanorm</span><span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="va">regmapviz1</span><span class="op">$</span><span class="va">data</span><span class="op">[</span>,<span class="fl">12</span><span class="op">:</span><span class="fl">21</span><span class="op">]</span>, <span class="fl">2</span>, <span class="va">normalize</span><span class="op">)</span>
 
 <span class="va">reg_kmat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/kmatrixGauss.html">kmatrixGauss</a></span><span class="op">(</span><span class="va">pcanorm</span>,sigma<span class="op">=</span><span class="fl">10</span><span class="op">)</span>
-<span class="va">reg_klfdapc</span><span class="op">=</span><span class="fu"><a href="../reference/KLFDA.html">KLFDA</a></span><span class="op">(</span><span class="va">reg_kmat</span>, y<span class="op">=</span><span class="va">regmapviz1</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">country</span>, r<span class="op">=</span><span class="fl">3</span>, knn <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>
-<span class="co"># Loading required package: lfda</span>
-<span class="co"># </span>
-<span class="co"># Attaching package: 'lfda'</span>
-<span class="co"># The following object is masked from 'package:KLFDAPC':</span>
-<span class="co"># </span>
-<span class="co">#     kmatrixGauss</span></pre></div>
-<div id="visualization-of-the-population-structure" class="section level5">
-<h5 class="hasAnchor">
-<a href="#visualization-of-the-population-structure" class="anchor"></a>Visualization of the population structure</h5>
+
+<span class="va">reg_klfdapc</span><span class="op">=</span><span class="fu"><a href="../reference/KLFDA.html">KLFDA</a></span><span class="op">(</span><span class="va">reg_kmat</span>, y<span class="op">=</span><span class="va">regmapviz1</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">country</span>, r<span class="op">=</span><span class="fl">3</span>, knn <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></pre></div>
+</div>
+<div id="visualization-of-the-population-structure" class="section level3">
+<h3 class="hasAnchor">
+<a href="#visualization-of-the-population-structure" class="anchor"></a>Visualization of the population structure</h3>
 <p>We can project the the first two genetic features onto the plane, with the samples labeled by the collecting country.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit">
 
 <span class="va">regmapviz1</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">PC1</span><span class="op">=</span><span class="va">reg_klfdapc</span><span class="op">$</span><span class="va">Z</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>
+
 <span class="va">regmapviz1</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">PC2</span><span class="op">=</span><span class="va">reg_klfdapc</span><span class="op">$</span><span class="va">Z</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span>
 
 <span class="fu"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span><span class="op">(</span><span class="va">regmapviz1</span>,coord<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"PC1"</span>,<span class="st">"PC2"</span><span class="op">)</span>,group <span class="op">=</span><span class="cn">NULL</span>,draw.points <span class="op">=</span><span class="cn">FALSE</span>,label <span class="op">=</span> <span class="st">"country"</span>,plot.title<span class="op">=</span><span class="st">" KLFDAPC 1 vs. KLFDAPC 2"</span><span class="op">)</span><span class="op">+</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"KLFDAPC 1"</span><span class="op">)</span><span class="op">+</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="st">"KLFDAPC 2"</span><span class="op">)</span></pre></div>
@@ -180,14 +185,16 @@
 </p>
 </div>
 </div>
-</div>
-<div id="genetic-gradients-along-longitide-and-latitude" class="section level2">
-<h2 class="hasAnchor">
-<a href="#genetic-gradients-along-longitide-and-latitude" class="anchor"></a>Genetic gradients along longitide and latitude</h2>
+<div id="genetic-gradients-along-longitide-and-latitude" class="section level3">
+<h3 class="hasAnchor">
+<a href="#genetic-gradients-along-longitide-and-latitude" class="anchor"></a>Genetic gradients along longitide and latitude</h3>
 <p>We would like to see how are the genetic gradients related to geography by looking at the relationships between geography (longitude, latitude) and the genetic gradients.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit">
+<span class="co">### Plot the KLFDAPC 2 vs. long</span>
 <span class="va">plot1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span><span class="op">(</span><span class="va">regmapviz1</span>,coord<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"PC1"</span>,<span class="st">"longitude"</span><span class="op">)</span>,draw.points <span class="op">=</span> <span class="cn">TRUE</span>,color <span class="op">=</span> <span class="st">"longitude"</span>,group <span class="op">=</span> <span class="cn">NULL</span>,plot.title<span class="op">=</span><span class="st">" KLFDAPC 1 vs. long"</span><span class="op">)</span><span class="op">+</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"KLFDAPC 1"</span><span class="op">)</span><span class="op">+</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="st">"long"</span><span class="op">)</span>
+<span class="co">### Plot the KLFDAPC 2 vs. lat</span>
 <span class="va">plot2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span><span class="op">(</span><span class="va">regmapviz1</span>,coord<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"PC2"</span>,<span class="st">"latitude"</span><span class="op">)</span>,draw.points <span class="op">=</span> <span class="cn">TRUE</span>,color <span class="op">=</span> <span class="st">"latitude"</span>,group <span class="op">=</span> <span class="cn">NULL</span>,plot.title<span class="op">=</span><span class="st">" KLFDAPC 2 vs. lat"</span><span class="op">)</span><span class="op">+</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"KLFDAPC 1"</span><span class="op">)</span><span class="op">+</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="st">"lat"</span><span class="op">)</span>
+
 <span class="fu"><a href="https://wilkelab.org/cowplot/reference/plot_grid.html">plot_grid</a></span><span class="op">(</span><span class="va">plot1</span>,<span class="va">plot2</span>,labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"A"</span>,<span class="st">"B"</span><span class="op">)</span><span class="op">)</span></pre></div>
 <div class="figure" style="text-align: center">
 <img src="Population_structure_of_RegMap_files/figure-html/unnamed-chunk-5-1.png" alt="&amp;nbsp;" width="1152"><p class="caption">
@@ -195,16 +202,13 @@
 </p>
 </div>
 </div>
-<div id="reference" class="section level2">
-<h2 class="hasAnchor">
-<a href="#reference" class="anchor"></a>Reference</h2>
+<div id="reference" class="section level3">
+<h3 class="hasAnchor">
+<a href="#reference" class="anchor"></a>Reference</h3>
 <p>Horton, M. W., Hancock, A. M., Huang, Y. S., Toomajian, C., Atwell, S., Auton, A., … &amp; Nordborg, M. (2012). Genome-wide patterns of genetic variation in worldwide Arabidopsis thaliana accessions from the RegMap panel. Nature genetics, 44(2), 212-216.</p>
-</div>
-<div id="citation" class="section level2">
-<h2 class="hasAnchor">
-<a href="#citation" class="anchor"></a>Citation</h2>
 <p>Qin, X. 2020. KLFDAPC: Kernel Local Fisher Discriminant Analysis of Principal Components (KLFDAPC) for large genomic data. R package version 0.2.0.</p>
 <p>Qin, X., Gaggiotti, OE., Chiang, C.2020. Kernel Local Fisher Discriminant Analysis of Principal Components (KLFDAPC) significantly improves the accuracy of predicting geographic origin of individuals. In submission.</p>
+</div>
 </div>
   </div>
 
