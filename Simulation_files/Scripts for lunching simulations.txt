@@ -1,0 +1,6 @@
+### generating 10 replicates for each scenarios (DNA format)
+
+./fsc26 -i Island.par -n 10 --seed 123
+./fsc26 -i Hier_Island.par -n 10 --seed 123
+./fsc26 -i Stepping_stone.par -n 10 --seed 123
+./fsc26 -i Hier_steppingstone.par -n 10 --seed 123
