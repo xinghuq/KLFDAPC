@@ -60,6 +60,6 @@ Welcome any [feedback](https://github.com/xinghuq/KLFDAPC/issues) and [pull requ
 
 Qin. X. 2020. KLFDAPC: Kernel Local Fisher Discriminant Analysis of Principal Components (KLFDAPC) for large genomic data. R package version 0.2.0.
 
-Qin, X., Chiang, C.W.K., and Gaggiotti, O.E. (2021). Kernel Local Fisher Discriminant Analysis of Principal Components (KLFDAPC) significantly improves the accuracy of predicting geographic origin of individuals. bioRxiv, 2021.2005.2015.444294.
+Qin, X., Chiang, C.W.K., and Gaggiotti, O.E. (2021). Kernel Local Fisher Discriminant Analysis of Principal Components (KLFDAPC) significantly improves the accuracy of predicting geographic origin of individuals [link](https://www.biorxiv.org/content/10.1101/2021.05.15.444294v2.full). bioRxiv, 2021.2005.2015.444294.
 
 
