@@ -5,15 +5,11 @@ year    <- sub("-.*","",meta$Date)
 version <- sprintf("R package version %s",meta$Version)
 
 citEntry(entry = "Manual",
-  title  = "{KLFDAPC}: Qin, X., Gaggiotti, OE., Chiang, C. 2020. Kernel Local Fisher Discriminant Analysis of Principal Components (KLFDAPC) significantly improves the accuracy of predicting geographic origin of individuals",
+  title  = "{KLFDAPC}: Qin, X., Chiang, C.W.K., and Gaggiotti, O.E. (2021). Kernel Local Fisher Discriminant Analysis of Principal Components (KLFDAPC) significantly improves the accuracy of predicting geographic origin of individuals. bioRxiv, 2021.2005.2015.444294",
   author = personList(as.person("Xinghu Qin"),
-                      as.person("Oscar Gaggiotti"),
-                      as.person("Charleston Chiang")),
-  year   = year,
-  note   = version,
-  url    = website,
+                      as.person("Charleston Chiang"),
+                      as.person("Oscar Gaggiotti")),
 
   textVersion =
-    paste("Qin Xinghu, Gaggiotti Oscar , Chiang Charleston. ",
-          " 2020. Kernel Local Fisher Discriminant Analysis of Principal Components (KLFDAPC) significantly improves the accuracy of predicting geographic origin of individuals ", "  ",version,". ",website,sep="")
+    paste(Qin, X., Chiang, C.W.K., and Gaggiotti, O.E. (2021). Kernel Local Fisher Discriminant Analysis of Principal Components (KLFDAPC) significantly improves the accuracy of predicting geographic origin of individuals. <a href="https://www.biorxiv.org/content/10.1101/2021.05.15.444294v2.full" class="uri">bioRxiv</a>, 2021.2005.2015.444294)
 )
