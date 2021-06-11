@@ -51,6 +51,35 @@ vignette("Genome_scan_KLFDAPC")
 
 ``````
 
+The best practice for KLFDAPC is to use the below code instead of using the specific kernel function from kernelab (i.e., rbfdot kernel).
+
+`````{r}
+
+library(KLFDAPC)
+
+# Open the GDS file
+genofile <- SNPRelate::snpgdsOpen(snpgdsExampleFileName())
+## obtaining pop code
+pop_code <- read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))
+pop_code <- read.gdsn(index.gdsn(genofile, path="sample.annot/pop.group"))
+pop_code=factor(pop_code,levels=unique(pop_code))
+## Doing PCA
+pcadata <- SNPRelate::snpgdsPCA(genofile)
+snpgdsClose(genofile)
+
+## normalization function
+normalize <- function(x) {
+return ((x - min(x)) / (max(x) - min(x)))
+}
+
+pcanorm=apply(pcadata$eigenvect[,1:20], 2, normalize)
+
+the Gaussian kernel
+kmat <- kmatrixGauss(pcanorm,sigma=5)
+
+klfdapc=KLFDA(kmat, y=pop_code, r=3, knn = 2)
+
+``````
 
 
 Welcome any [feedback](https://github.com/xinghuq/KLFDAPC/issues) and [pull request](https://github.com/xinghuq/KLFDAPC/pulls). 
