@@ -51,12 +51,12 @@ vignette("Genome_scan_KLFDAPC")
 
 ``````
 
+## Implementation of KLFDAPC
+
 The best practice for KLFDAPC is to use the below code instead of using the specific kernel function from kernelab (i.e., rbfdot kernel).
 
 `````{r}
-
 library(KLFDAPC)
-
 # Open the GDS file
 genofile <- SNPRelate::snpgdsOpen(snpgdsExampleFileName())
 ## obtaining pop code
@@ -80,7 +80,14 @@ kmat <- kmatrixGauss(pcanorm,sigma=5)
 klfdapc=KLFDA(kmat, y=pop_code, r=3, knn = 2)
 
 ``````
+## Plotting the genetic structure
 
+``````{r}
+plot(klfdapc$Z[,1], klfdapc$Z[,2], col=as.integer(pop_code), xlab="RD 1", ylab="RD 2")
+legend("topright", legend=levels(pop_code), pch="o", col=1:nlevels(pop_code))
+
+
+``````
 
 Welcome any [feedback](https://github.com/xinghuq/KLFDAPC/issues) and [pull request](https://github.com/xinghuq/KLFDAPC/pulls). 
 
