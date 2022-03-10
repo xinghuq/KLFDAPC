@@ -1,0 +1,164 @@
+library(caret)
+library("caretEnsemble")
+#library("RSNNS")
+set.seed(999)
+options(warn=-1)
+load("Making_figures_all_data.RData")
+
+#### predict the locations, using the first reduced features to predict the locations (lat, long)
+
+
+
+
+#### before run  the model, set parallel (only in the cluster, for my HP desttop, only 8 GB is not necessary to do this)
+library(doParallel)
+cl <- makePSOCKcluster(5)
+registerDoParallel(cl)
+
+Sys.time()
+print("regression on lat and long")
+
+set.seed(123)
+
+#mlpadaptive_ctrl <-  expand.grid(layer1 = c(1,5, 10,15), 
+  #                                       layer2=c(0,5,10,15),
+   #                                      layer3=c(0,5,10,15),
+    #                                     decay = c(0,1e-5,1e-4,1e-3,1e-2,1e-1))
+
+#### if use the grid search
+#mlpadaptive_ctrl <-  expand.grid(layer1 = c(0,10,50,100), ### note this is hidden layer
+#                                         layer2=c(0,10,50,100),
+#                                         layer3=c(0,10,50,100),
+#                                         decay = c(0,1e-3,1e-1))
+#
+
+mlpadaptive_ctrl <- trainControl(method = "adaptive_cv",
+                             number = 10, repeats = 10,
+                             adaptive = list(min = 5, alpha = 0.05, 
+                                             method = "gls", complete = TRUE),
+                             search = "random")
+
+set.seed(123)
+
+print("regression PCA on long")
+
+#### change the "method" and architecture
+
+PCA_POPRES_model_mlp_long <- train(y=PCA_popresnew$data$longitude , x=PCA_popresnew$data[,c("PC1","PC2")],
+                                     method=c("mlpWeightDecayML"),
+                                    preProcess=c("scale"),
+                                  trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="PCA_POPRES_mlp_long.RData")
+write.csv(PCA_POPRES_model_mlp_long$results,file = "PCA_POPRES_model_mlp_long.csv") 
+Sys.time()
+print("regression PCA on lat")
+
+
+PCA_POPRES_model_mlp_lat <- train(y=PCA_popresnew$data$latitude , x=PCA_popresnew$data[,c("PC1","PC2")],
+                                              method=c("mlpWeightDecayML"),
+                                              preProcess=c("scale"),
+                                              trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="PCA_POPRES_mlp_lat.RData")
+write.csv(PCA_POPRES_model_mlp_lat$results,file = "PCA_POPRES_model_mlp_lat.csv") 
+Sys.time()
+
+### DAPC
+DAPC_POPRES_model_mlp_long <- train(y=DAPC_popresnew$data$longitude , x=DAPC_popresnew$data[,c("PC1","PC2")],
+                                              method=c("mlpWeightDecayML"),
+                                              preProcess=c("scale"),
+                                              trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="DAPC_POPRES_mlp_long.RData")
+write.csv(DAPC_POPRES_model_mlp_long$results,file = "DAPC_POPRES_model_mlp_long.csv") 
+Sys.time()
+print("regression DAPC_city on lat")
+
+
+DAPC_POPRES_model_mlp_lat <- train(y=DAPC_popresnew$data$latitude , x=DAPC_popresnew$data[,c("PC1","PC2")],
+                                             method=c("mlpWeightDecayML"),
+                                             preProcess=c("scale"),
+                                             trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="DAPC_POPRES_mlp_lat.RData")
+write.csv(DAPC_POPRES_model_mlp_lat$results,file = "DAPC_POPRES_model_mlp_lat.csv") 
+Sys.time()
+
+
+
+#####KLFDAPC 1
+KLFDAPC_sigma1_POPRES_model_mlp_lat <- train(y=KLFDAPC_popresnew1$data$latitude , x=KLFDAPC_popresnew1$data[,c("PC1","PC2")],
+                                                   method=c("mlp"),
+                                                   preProcess=c("scale"),
+                                                   trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="KLFDAPC_sigma1_POPRES_mlp_lat.RData")
+write.csv(KLFDAPC_sigma1_POPRES_model_mlp_lat$results,file = "KLFDAPC_sigma1_POPRES_model_mlp_lat.csv") 
+Sys.time()
+
+KLFDAPC_sigma1_POPRES_model_mlp_long <- train(y=KLFDAPC_popresnew1$data$longitude, x=KLFDAPC_popresnew1$data[,c("PC1","PC2")],
+                                                         method=c("mlpWeightDecayML"),
+                                                         preProcess=c("scale"),
+                                                         trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="KLFDAPC_sigma1_POPRES_mlp_long.RData")
+write.csv(KLFDAPC_sigma1_POPRES_model_mlp_long$results,file = "KLFDAPC_sigma1_POPRES_model_mlp_long.csv") 
+Sys.time()
+
+#####KLFDAPC 2.5
+KLFDAPC_sigma2.5_POPRES_model_mlp_lat <- train(y=KLFDAPC_popresnew2.5$data$latitude , x=KLFDAPC_popresnew2.5$data[,c("PC1","PC2")],
+                                                          method=c("mlpWeightDecayML"),
+                                                          preProcess=c("scale"),
+                                                          trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="KLFDAPC_sigma2.5_POPRES_mlp_lat.RData")
+write.csv(KLFDAPC_sigma2.5_POPRES_model_mlp_lat$results,file = "KLFDAPC_sigma2.5_POPRES_model_mlp_lat.csv") 
+Sys.time()
+
+KLFDAPC_sigma2.5_POPRES_model_mlp_long <- train(y=KLFDAPC_popresnew2.5$data$longitude, x=KLFDAPC_popresnew2.5$data[,c("PC1","PC2")],
+                                                           method=c("mlpWeightDecayML"),
+                                                           preProcess=c("scale"),
+                                                           trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="KLFDAPC_sigma2.5_POPRES_mlp_long.RData")
+write.csv(KLFDAPC_sigma2.5_POPRES_model_mlp_long$results,file = "KLFDAPC_sigma2.5_POPRES_model_mlp_long.csv") 
+Sys.time()
+
+
+#####KLFDAPC 5
+KLFDAPC_sigma5_POPRES_model_mlp_lat <- train(y=KLFDAPC_popresnew5$data$latitude , x=KLFDAPC_popresnew5$data[,c("PC1","PC2")],
+                                                            method=c("mlpWeightDecayML"),
+                                                            preProcess=c("scale"),
+                                                            trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="KLFDAPC_sigma5_POPRES_mlp_lat.RData")
+write.csv(KLFDAPC_sigma5_POPRES_model_mlp_lat$results,file = "KLFDAPC_sigma5_POPRES_model_mlp_lat.csv") 
+Sys.time()
+
+KLFDAPC_sigma5_POPRES_model_mlp_long <- train(y=KLFDAPC_popresnew5$data$longitude, x=KLFDAPC_popresnew5$data[,c("PC1","PC2")],
+                                                             method=c("mlpWeightDecayML"),
+                                                             preProcess=c("scale"),
+                                                             trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="KLFDAPC_sigma5_POPRES_mlp_long.RData")
+write.csv(KLFDAPC_sigma5_POPRES_model_mlp_long$results,file = "KLFDAPC_sigma5_POPRES_model_mlp_long.csv") 
+Sys.time()
+
+
+
+
+####
+
+
+stopCluster(cl)
+Sys.time()
+print("finished all")
+#####
+
+
+save.image(file = "DL_mlp_POPRES_predicting_locations_sets_all.RData")
+print("All training finished")
+Sys.time()
+
+

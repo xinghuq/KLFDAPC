@@ -1,0 +1,338 @@
+library(caret)
+library("caretEnsemble")
+#library("RSNNS")
+set.seed(999)
+options(warn=-1)
+load("CNWM_reduced_features_all_after_protest.RData")
+
+#### predict the locations, using the first reduced features to predict the locations (lat, long)
+
+#para=c("longitude","latitude")
+#### becasue the pc values are quite small, e-22, this will cause problems
+
+normalize <- function(x) {
+  return ((x - min(x)) / (max(x) - min(x)))
+}
+
+#### before run  the model, set parallel (only in the cluster, for my HP desttop, only 8 GB is not necessary to do this)
+
+### model_parameters is model_para
+### we should remove panmixia first and use the other four models 
+Sys.time()
+print("regression on lat and long")
+#econtrol <- trainControl(method="LOOCV")
+set.seed(123)
+#mlpadaptive_ctrl <-  expand.grid(layer1 = c(1,5, 10,15), 
+#                                       layer2=c(0,5,10,15),
+#                                      layer3=c(0,5,10,15),
+#                                     decay = c(0,1e-5,1e-4,1e-3,1e-2,1e-1))
+
+#### if use the grid search
+#mlpadaptive_ctrl <-  expand.grid(layer1 = c(0,10,50,100), ### note this is hidden layer
+#                                         layer2=c(0,10,50,100),
+#                                         layer3=c(0,10,50,100),
+#                                         decay = c(0,1e-3,1e-1))
+#
+
+mlpadaptive_ctrl <- trainControl(method = "adaptive_cv",
+                                 number = 10, repeats = 10,
+                                 adaptive = list(min = 5, alpha = 0.05, method = "gls", complete = TRUE),
+                                 search = "random")
+
+set.seed(123)
+
+print("regression PCA on long")
+
+
+PCA_CNWM_model_mlp_long <- caret::train(longitude~.,data=PCA_CN_geonew$data[,c("PC1","PC2","longitude")],
+                                                     method=c("mlpWeightDecayML"), 
+                                                    # preProcess=c("scale"),
+                                                     trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+
+save.image(file="PCA_CNWM_mlp_long.RData")
+write.csv(PCA_CNWM_model_mlp_long$results,file = "PCA_CNWM_model_mlp_long.csv") 
+Sys.time()
+print("regression PCA on long finished")
+print("regression PCA on lat")
+
+
+PCA_CNWM_model_mlp_lat =caret::train(latitude~., data=PCA_CN_geonew$data[,c("PC1","PC2","latitude")],
+                                             method=c("mlpWeightDecayML"),
+                                              trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="PCA_CNWM_mlp_lat.RData")
+write.csv(PCA_CNWM_model_mlp_lat$results,file = "PCA_CNWM_model_mlp_lat.csv") 
+Sys.time()
+print("regression PCA on lat finished")
+### DAPC
+
+print("DAPC regress city on long")
+
+DAPC_city_CNWM_model_mlp_long =caret::train(longitude~.,data=DAPC_CN_geocitynew$data[,c("PC1","PC2","longitude")],
+                                                    method=c("mlpWeightDecayML"),
+                                           # preProcess=c("scale"),
+                                                    trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="DAPC_city_CNWM_mlp_long.RData")
+write.csv(DAPC_city_CNWM_model_mlp_long$results,file = "DAPC_city_CNWM_model_mlp_long.csv") 
+Sys.time()
+
+print("DAPC regress city RD on long finished")
+
+print("regression DAPC_city on lat")
+
+
+DAPC_city_CNWM_model_mlp_lat =caret::train(latitude~., data=DAPC_CN_geocitynew$data[,c("PC1","PC2","latitude")],
+                                                   method=c("mlpWeightDecayML"),
+                                          # preProcess=c("scale"),
+                                                   trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="DAPC_city_CNWM_mlp_lat.RData")
+write.csv(DAPC_city_CNWM_model_mlp_lat$results,file = "DAPC_city_CNWM_model_mlp_lat.csv") 
+Sys.time()
+
+
+print("DAPC regress city on lat finished")
+### province
+
+
+print("DAPC province regress on long")
+DAPC_province_CNWM_model_mlp_long =caret::train(longitude~.,data=DAPC_CN_geoprovincenew$data[,c("PC1","PC2","longitude")],
+                                                        method=c("mlpWeightDecayML"),
+                                               # preProcess=c("scale"),
+                                                        trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="DAPC_province_CNWM_mlp_long.RData")
+write.csv(DAPC_province_CNWM_model_mlp_long$results,file = "DAPC_province_CNWM_model_mlp_long.csv") 
+Sys.time()
+
+print("DAPC province regress on long finished")
+
+print("regression DAPC_province on lat")
+
+
+DAPC_province_CNWM_model_mlp_lat =caret::train(latitude~., data=DAPC_CN_geoprovincenew$data[,c("PC1","PC2","latitude")],
+                                                       method=c("mlpWeightDecayML"),
+                                              # preProcess=c("scale"),
+                                                       trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="DAPC_province_CNWM_mlp_lat.RData")
+write.csv(DAPC_province_CNWM_model_mlp_lat$results,file = "DAPC_province_CNWM_model_mlp_lat.csv") 
+Sys.time()
+print("DAPC province regress on lat finished")
+#####KLFDAPC city0.5
+
+print("KLFDAPC0.5 city regress on")
+
+KLFDAPC_city0.5_CNWM_model_mlp_lat =caret::train(latitude~., data=KLFDAPC_CN_city0.5new$data[,c("PC1","PC2","latitude")],
+                                                         method=c("mlpWeightDecayML"),
+                                               #  preProcess=c("scale"),
+                                                         trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="KLFDAPC_city0.5_CNWM_mlp_lat.RData")
+write.csv(KLFDAPC_city0.5_CNWM_model_mlp_lat$results,file = "KLFDAPC_city0.5_CNWM_model_mlp_lat.csv") 
+Sys.time()
+print("KLFDAPC0.5 city regress on lat finished")
+
+
+print("KLFDAPC0.5 city regress on long")
+
+KLFDAPC_city0.5_CNWM_model_mlp_long =caret::train(longitude~.,data=KLFDAPC_CN_city0.5new$data[,c("PC1","PC2","longitude")],
+                                                          method=c("mlpWeightDecayML"),
+                                                #  preProcess=c("scale"),
+                                                          trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="KLFDAPC_city0.5_CNWM_mlp_long.RData")
+write.csv(KLFDAPC_city0.5_CNWM_model_mlp_long$results,file = "KLFDAPC_city0.5_CNWM_model_mlp_long.csv") 
+Sys.time()
+print("KLFDAPC0.5 city regress on long finished")
+###1
+
+print("KLFDAPC1 city regress on lat ")
+KLFDAPC_city1_CNWM_model_mlp_lat =caret::train(latitude~., data=KLFDAPC_CN_city1new$data[,c("PC1","PC2","latitude")],
+                                                       method=c("mlpWeightDecayML"),
+                                              # preProcess=c("scale"),
+                                                       trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="KLFDAPC_city1_CNWM_mlp_lat.RData")
+write.csv(KLFDAPC_city1_CNWM_model_mlp_lat$results,file = "KLFDAPC_city1_CNWM_model_mlp_lat.csv") 
+Sys.time()
+print("KLFDAPC1 city regress on lat finished")
+
+print("KLFDAPC1 city regress on long")
+KLFDAPC_city1_CNWM_model_mlp_long =caret::train(longitude~.,data=KLFDAPC_CN_city1new$data[,c("PC1","PC2","longitude")],
+                                                        method=c("mlpWeightDecayML"),
+                                               # preProcess=c("scale"),
+                                                        trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="KLFDAPC_city1_CNWM_mlp_long.RData")
+write.csv(KLFDAPC_city1_CNWM_model_mlp_long$results,file = "KLFDAPC_city1_CNWM_model_mlp_long.csv") 
+Sys.time()
+
+print("KLFDAPC1 city regress on long finished")
+
+
+######  2.5
+
+print("KLFDAPC2.5 city regress on lat")
+
+KLFDAPC_city2.5_CNWM_model_mlp_lat =caret::train(latitude~., data=KLFDAPC_CN_city2.5new$data[,c("PC1","PC2","latitude")],
+                                               method=c("mlpWeightDecayML"),
+                                              # preProcess=c("scale"),
+                                               trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="KLFDAPC_city2.5_CNWM_mlp_lat.RData")
+write.csv(KLFDAPC_city2.5_CNWM_model_mlp_lat$results,file = "KLFDAPC_city2.5_CNWM_model_mlp_lat.csv") 
+Sys.time()
+print("KLFDAPC2.5 city regress on lat finished")
+
+print("KLFDAPC2.5 city regress on long")
+KLFDAPC_city2.5_CNWM_model_mlp_long =caret::train(longitude~.,data=KLFDAPC_CN_city2.5new$data[,c("PC1","PC2","longitude")],
+                                                method=c("mlpWeightDecayML"),
+                                               # preProcess=c("scale"),
+                                                trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="KLFDAPC_city2.5_CNWM_mlp_long.RData")
+write.csv(KLFDAPC_city2.5_CNWM_model_mlp_long$results,file = "KLFDAPC_city2.5_CNWM_model_mlp_long.csv") 
+Sys.time()
+print("KLFDAPC2.5 city regress on long finished")
+
+
+######  5
+
+print("KLFDAPC5 city regress on lat")
+
+KLFDAPC_city5_CNWM_model_mlp_lat =caret::train(latitude~., data=KLFDAPC_CN_city5new$data[,c("PC1","PC2","latitude")],
+                                                       method=c("mlpWeightDecayML"),
+                                              # preProcess=c("scale"),
+                                                       trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="KLFDAPC_city5_CNWM_mlp_lat.RData")
+write.csv(KLFDAPC_city5_CNWM_model_mlp_lat$results,file = "KLFDAPC_city5_CNWM_model_mlp_lat.csv") 
+Sys.time()
+print("KLFDAPC5 city regress on lat finished")
+
+print("KLFDAPC5 city regress on long")
+KLFDAPC_city5_CNWM_model_mlp_long =caret::train(longitude~.,data=KLFDAPC_CN_city5new$data[,c("PC1","PC2","longitude")],
+                                                        method=c("mlpWeightDecayML"),
+                                               # preProcess=c("scale"),
+                                                        trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="KLFDAPC_city5_CNWM_mlp_long.RData")
+write.csv(KLFDAPC_city5_CNWM_model_mlp_long$results,file = "KLFDAPC_city5_CNWM_model_mlp_long.csv") 
+Sys.time()
+print("KLFDAPC5 city regress on long finished")
+####
+
+#####KLFDAPC province0.5
+
+print("KLFDAPC0.5 province regress on lat")
+KLFDAPC_province0.5_CNWM_model_mlp_lat =caret::train(latitude~., data=KLFDAPC_CN_province0.5new$data[,c("PC1","PC2","latitude")],
+                                                             method=c("mlpWeightDecayML"),
+                                                #     preProcess=c("scale"),
+                                                             trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="KLFDAPC_province0.5_CNWM_mlp_lat.RData")
+write.csv(KLFDAPC_province0.5_CNWM_model_mlp_lat$results,file = "KLFDAPC_province0.5_CNWM_model_mlp_lat.csv") 
+Sys.time()
+print("KLFDAPC0.5 province regress on lat finished")
+
+print("KLFDAPC0.5 province regress on long")
+KLFDAPC_province0.5_CNWM_model_mlp_long =caret::train(longitude~.,data=KLFDAPC_CN_province0.5new$data[,c("PC1","PC2","longitude")],
+                                                              method=c("mlpWeightDecayML"),
+                                                 #     preProcess=c("scale"),
+                                                              trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="KLFDAPC_province0.5_CNWM_mlp_long.RData")
+write.csv(KLFDAPC_province0.5_CNWM_model_mlp_long$results,file = "KLFDAPC_province0.5_CNWM_model_mlp_long.csv") 
+Sys.time()
+print("KLFDAPC0.5 province regress on long finished")
+###1
+print("KLFDAPC1 province regress on lat")
+KLFDAPC_province1_CNWM_model_mlp_lat =caret::train(latitude~., data=KLFDAPC_CN_province1new$data[,c("PC1","PC2","latitude")],
+                                                           method=c("mlpWeightDecayML"),
+                                                  # preProcess=c("scale"),
+                                                           trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="KLFDAPC_province1_CNWM_mlp_lat.RData")
+write.csv(KLFDAPC_province1_CNWM_model_mlp_lat$results,file = "KLFDAPC_province1_CNWM_model_mlp_lat.csv") 
+Sys.time()
+print("KLFDAPC1 province regress on lat finished")
+
+
+print("KLFDAPC1 province regress on long")
+KLFDAPC_province1_CNWM_model_mlp_long =caret::train(longitude~.,data=KLFDAPC_CN_province1new$data[,c("PC1","PC2","longitude")],
+                                                            method=c("mlpWeightDecayML"),
+                                                   # preProcess=c("scale"),
+                                                            trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="KLFDAPC_province1_CNWM_mlp_long.RData")
+write.csv(KLFDAPC_province1_CNWM_model_mlp_long$results,file = "KLFDAPC_province1_CNWM_model_mlp_long.csv") 
+Sys.time()
+print("KLFDAPC1 province regress on long finished")
+
+######  2.5
+
+print("KLFDAPC2.5 province regress on lat")
+KLFDAPC_province2.5_CNWM_model_mlp_lat =caret::train(latitude~., data=KLFDAPC_CN_province2.5new$data[,c("PC1","PC2","latitude")],
+                                                   method=c("mlpWeightDecayML"),
+                                                  # preProcess=c("scale"),
+                                                   trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="KLFDAPC_province2.5_CNWM_mlp_lat.RData")
+write.csv(KLFDAPC_province2.5_CNWM_model_mlp_lat$results,file = "KLFDAPC_province2.5_CNWM_model_mlp_lat.csv") 
+Sys.time()
+print("KLFDAPC2.5 province regress on lat finished")
+
+
+print("KLFDAPC2.5 province regress on long")
+KLFDAPC_province2.5_CNWM_model_mlp_long =caret::train(longitude~.,data=KLFDAPC_CN_province2.5new$data[,c("PC1","PC2","longitude")],
+                                                    method=c("mlpWeightDecayML"),
+                                                   # preProcess=c("scale"),
+                                                    trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="KLFDAPC_province2.5_CNWM_mlp_long.RData")
+write.csv(KLFDAPC_province2.5_CNWM_model_mlp_long$results,file = "KLFDAPC_province2.5_CNWM_model_mlp_long.csv") 
+Sys.time()
+
+print("KLFDAPC2.5 province regress on long finished")
+
+
+######  5
+
+print("KLFDAPC5 province regress on lat")
+KLFDAPC_province5_CNWM_model_mlp_lat =caret::train(latitude~., data=KLFDAPC_CN_province5new$data[,c("PC1","PC2","latitude")],
+                                                           method=c("mlpWeightDecayML"),
+                                                  # preProcess=c("scale"),
+                                                           trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="KLFDAPC_province5_CNWM_mlp_lat.RData")
+write.csv(KLFDAPC_province5_CNWM_model_mlp_lat$results,file = "KLFDAPC_province5_CNWM_model_mlp_lat.csv") 
+Sys.time()
+print("KLFDAPC5 province regress on lat finished")
+
+
+print("KLFDAPC5 province regress on long")
+KLFDAPC_province5_CNWM_model_mlp_long =caret::train(longitude~.,data=KLFDAPC_CN_province5new$data[,c("PC1","PC2","longitude")],
+                                                            method=c("mlpWeightDecayML"),
+                                                   # preProcess=c("scale"),
+                                                            trControl = mlpadaptive_ctrl,tuneLength = 100)
+
+save.image(file="KLFDAPC_province5_CNWM_mlp_long.RData")
+write.csv(KLFDAPC_province5_CNWM_model_mlp_long$results,file = "KLFDAPC_province5_CNWM_model_mlp_long.csv") 
+Sys.time()
+
+print("KLFDAPC5 province regress on long finished")
+
+Sys.time()
+print("finished all")
+#####
+
+
+save.image(file = "DL_mlp_CNWM_RD_predicting_locations_sets_all.RData")
+print("All training finished")
+Sys.time()
+
+
+

@@ -1,0 +1,153 @@
+library(SNPRelate)
+
+genofile <- snpgdsOpen("POPRES.hg19.gds")
+###Working space: 1,382 samples, 43,568 SNPs
+POPRES_pca <- snpgdsPCA(genofile,snp.id=snpset.id,sample.id = popres_rm_I_ID$sample.id, autosome.only = TRUE,
+                        remove.monosnp = TRUE,  eigen.cnt = 500,
+                        num.thread = 16, bayesian = FALSE)
+
+save(POPRES_pca,file="POPRES_PCA_results.RData")
+#CN_WM_pc_prop=CN_WM_pca$eigenval / sum(CN_WM_pca$eigenval)
+write.table(POPRES_pca$varprop,file="POPRES_PCA_varprop.txt")
+
+### here load the popres_rm_I_ID
+popres_ID$plabels=factor(popres_ID$plabels,levels = unique(popres_ID$plabels))
+popres_ID$alabels=factor(popres_ID$alabels,levels = unique(popres_ID$alabels))
+
+
+POPRESPCs <- data.frame(sample.id=POPRES_pca$sample.id,POPRES_ID=popres_ID$sample.id,Country=popres_ID$plabels,Country.abbrv=popres_ID$alabels,POPRES_pca$eigenvect[,1:500],stringsAsFactors = FALSE)
+
+write.csv(POPRESPCs,file="POPRES_PCA_first500PCs.csv")
+
+POPRESPCs1 <- data.frame(sample.id=POPRES_pca$sample.id,POPRES_ID=popres_ID$sample.id,Country=popres_ID$plabels,Country.abbrv=popres_ID$alabels,popres_ID[,6:11],POPRES_pca$eigenvect[,1:500],stringsAsFactors = FALSE)
+
+write.csv(POPRESPCs1,file="POPRES_PCA_first500PCs__with_geo_coordinates.csv")
+
+Sys.time()
+print("PCA finished")
+
+### Genotype matrix:  samples X 43568 SNPs
+POPRES_genotype_mat=snpgdsGetGeno(genofile,snp.id=snpset.id, sample.id = popres_ID$sample.id,snpfirstdim=FALSE, .snpread=NA, with.id=TRUE, verbose=TRUE)
+save(POPRES_genotype_mat,file="POPRES_genotype_mat_LD0.8_MAF0.05_missingrate0.05_final_rm_mono_.RData")
+
+snpgdsClose(genofile)
+
+# now doing DAPC
+
+normalize <- function(x) {
+  return ((x - min(x)) / (max(x) - min(x)))
+}
+POPRES_pca_norm=apply(POPRES_pca$eigenvect[,1:20],2,normalize)
+
+#####################
+print("Doing DAPC")
+
+library(MASS)
+POPRES_lda=MASS::lda(as.matrix(POPRES_pca_norm), grouping=popres_ID$plabels, tol = 1.0e-30)
+
+pred_POPRES_lda=predict(POPRES_lda,dimen=20)
+write.csv(table(popres_ID$plabels),file="POPRES_Country_summary.csv")
+write.csv(table(popres_ID$alabels),file="POPRES_Country.abbrv_summary.csv")
+write.csv(pred_POPRES_lda$x,file="pred_POPRES_dapc_coord_.csv")
+
+POPRES_DAPC <- data.frame(sample.id=POPRES_pca$sample.id,POPRES_ID=popres_ID$ID,Country=popres_ID$plabels,popres_ID[,5:7],pred_POPRES_lda$x,stringsAsFactors = FALSE)
+write.csv(POPRES_DAPC,file="POPRES_dapc_coord_LDs_.csv")
+
+print("DAPC Finished")
+Sys.time()
+print("Doing KLDAPC")
+
+require("lfda")
+
+KLFDA=function (k, y, r, metric = c("weighted", "orthonormalized",
+                                    "plain"), knn = 1, reg = 0.001,tol=1e-40)
+{
+  metric <- match.arg(metric)
+  #D1=pwDeltaD(x,para)$PairwiseDeltaD
+  
+  # require("SNFtool")
+  #k=affinityMatrix(1-D1,K = K, sigma = sigma)
+  y <- t(as.matrix(y))
+  n <- nrow(k)
+  if (is.null(r))
+    r <- n
+  tSb <- mat.or.vec(n, n)
+  tSw <- mat.or.vec(n, n)
+  for (i in unique(as.vector(t(y)))) {
+    Kcc <- k[y == i, y == i]
+    Kc <- k[, y == i]
+    nc <- nrow(Kcc)
+    Kccdiag <- diag(Kcc)
+    distance2 <- repmat(Kccdiag, 1, nc) + repmat(t(Kccdiag),
+                                                 nc, 1) - 2 * Kcc
+    A <- getAffinityMatrix(distance2, knn, nc)
+    Kc1 <- as.matrix(rowSums(Kc))
+    Z <- Kc %*% (repmat(as.matrix(colSums(A)), 1, n) * t(Kc)) -
+      Kc %*% A %*% t(Kc)
+    tSb <- tSb + (Z/n) + Kc %*% t(Kc) * (1 - nc/n) + Kc1 %*%
+      (t(Kc1)/n)
+    tSw <- tSw + Z/nc
+  }
+  K1 <- as.matrix(rowSums(k))
+  tSb <- tSb - K1 %*% t(K1)/n - tSw
+  tSb <- (tSb + t(tSb))/2
+  tSw <- (tSw + t(tSw))/2
+  F=tSb/tSw
+  eigTmp <- suppressWarnings(rARPACK::eigs(A = solve(tSw +
+                                                       reg * diag(1, nrow(tSw), ncol(tSw)),tol=tol) %*% tSb, k = r,
+                                           which = "LM"))
+  eigVec <- Re(eigTmp$vectors)
+  eigVal <- as.matrix(Re(eigTmp$values))
+  Tr <- getMetricOfType(metric, eigVec, eigVal, n)
+  Z <- t(t(Tr) %*% k)
+  out <- list(T = Tr, Z = Z,eigVec=eigVec,eigVal=eigVal,nc=nc,A=k,F=F,distance2=distance2)
+  class(out) <- "lfda"
+  return(out)
+}
+###
+print("Sigma 0.5")
+POPRES_KLFDAmat0_5=kmatrixGauss(as.matrix(POPRES_pca_norm),sigma = 0.5)
+POPRES_KLFDAPC0_5=KLFDA(POPRES_KLFDAmat0_5,y=as.matrix(popres_ID$plabels),r=10,metric = "plain",knn=1)
+
+write.csv(as.data.frame(cbind(popres_ID[,1:7],POPRES_KLFDAPC0_5$Z)),file="rd_POPRES_KLFDAPC_20_sigma_0_5_.csv")
+
+save(POPRES_KLFDAPC0_5,file="POPRES_KLFDAPC_20_sigma_0_5_.RData")
+
+RD_POPRES_KLFDAPC0_5=POPRES_KLFDAPC0_5$Z
+rm(POPRES_KLFDAPC0_5,POPRES_KLFDAmat0_5)
+print("Sigma 1")
+POPRES_KLFDAmat1=kmatrixGauss(as.matrix(POPRES_pca_norm),sigma = 1)
+POPRES_KLFDAPC1=KLFDA(POPRES_KLFDAmat1,y=as.data.frame(popres_ID$plabels),r=10,metric = "plain",knn=1)
+write.csv(as.data.frame(cbind(popres_ID[,1:7],POPRES_KLFDAPC1$Z)),file="rd_POPRES_KLFDAPC_20_sigma_1_.csv")
+
+save(POPRES_KLFDAPC1,file = "POPRES__FLFDAPC_20_sigma_1_.RData")
+
+POPRES_pca_norm=apply(POPRES_PCA[,11:30],2,normalize)
+print("Sigma 2.5")
+POPRES_KLFDAmat2.5=kmatrixGauss(as.matrix(POPRES_pca_norm),sigma = 2.5)
+POPRES_KLFDAPC2.5=KLFDA(POPRES_KLFDAmat2.5,y=as.data.frame(popres_ID$plabels),r=10,metric = "plain",knn=1)
+write.csv(as.data.frame(cbind(popres_ID[,1:7],POPRES_KLFDAPC2.5$Z)),file="rd_POPRES_KLFDAPC_20_sigma_2.5_.csv")
+
+save(POPRES_KLFDAPC2.5,file = "POPRES__FLFDAPC_20_sigma_2.5_.RData")
+
+RD_POPRES_KLFDAPC1=POPRES_KLFDAPC1$Z
+rm(POPRES_KLFDAmat1,POPRES_KLFDAPC1)
+print("Sigma 5")
+POPRES_KLFDAmat5=kmatrixGauss(as.matrix(POPRES_pca_norm),sigma = 5)
+POPRES_KLFDAPC5=KLFDA(POPRES_KLFDAmat5,y=as.data.frame(popres_ID$plabels),r=10,metric = "plain",knn=1)
+write.csv(as.data.frame(cbind(popres_ID[,1:7],POPRES_KLFDAPC5$Z)),file="rd_POPRES_KLFDAPC_20_sigma_5_.csv")
+save(POPRES_KLFDAPC5,file = "POPRES__FLFDAPC_20_sigma_5_.RData")
+RD_POPRES_KLFDAPC_5=POPRES_KLFDAPC5$Z
+rm(POPRES_KLFDAPC5,POPRES_KLFDAmat5)
+
+save.image(file = "POPRES__KLFDAPC_Data.RData")
+print("finished")
+
+
+
+
+
+
+
+
+

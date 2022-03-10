@@ -1,0 +1,152 @@
+library(SNPRelate)
+### read data, in gds format
+genofile <- snpgdsOpen("CONVERGE.gds")
+CONVERGE_pca <- snpgdsPCA(genofile,snp.id=snpset.id,sample.id = CONVERGE_ID$sample.id, autosome.only = TRUE,
+                        remove.monosnp = TRUE, eigen.cnt = 500,
+                        num.thread = 16, bayesian = FALSE, need.genmat = TRUE,
+                        genmat.only = FALSE, verbose = TRUE)
+
+save(CONVERGE_pca,file="CONVERGE_PCA_results.RData")
+write.table(CONVERGE_pca$varprop,file="CONVERGE_PCA_varprop.txt")
+
+### here load the CONVERGE sample ID
+CONVERGE_ID$plabels=factor(CONVERGE_ID$plabels,levels = unique(CONVERGE_ID$plabels))
+CONVERGE_ID$alabels=factor(CONVERGE_ID$alabels,levels = unique(CONVERGE_ID$alabels))
+
+
+CONVERGEPCs <- data.frame(sample.id=CONVERGE_pca$sample.id,CONVERGE_ID=CONVERGE_ID$sample.id,Country=CONVERGE_ID$plabels,Country.abbrv=CONVERGE_ID$alabels,CONVERGE_pca$eigenvect[,1:500],stringsAsFactors = FALSE)
+
+write.csv(CONVERGEPCs,file="CONVERGE_PCA_top500.csv")
+
+CONVERGEPCs1 <- data.frame(sample.id=CONVERGE_pca$sample.id,CONVERGE_ID=CONVERGE_ID$sample.id,Country=CONVERGE_ID$plabels,Country.abbrv=CONVERGE_ID$alabels,CONVERGE_ID[,6:11],CONVERGE_pca$eigenvect[,1:500],stringsAsFactors = FALSE)
+
+write.csv(CONVERGEPCs1,file="CONVERGE_PCA_top500_with_geo_coordinates.csv")
+
+Sys.time()
+print("PCA finished")
+
+### Genotype matrix
+CONVERGE_genotype_mat=snpgdsGetGeno(genofile,snp.id=snpset.id, sample.id = CONVERGE_ID$sample.id,snpfirstdim=FALSE, .snpread=NA, with.id=TRUE, verbose=TRUE)
+save(CONVERGE_genotype_mat,file="CONVERGE_genotype_mat_final.RData")
+
+snpgdsClose(genofile)
+
+# now doing DAPC
+
+normalize <- function(x) {
+  return ((x - min(x)) / (max(x) - min(x)))
+}
+CONVERGE_pca_norm=apply(CONVERGE_pca$eigenvect[,1:500],2,normalize)
+
+#####################
+print("Doing DAPC")
+
+library(MASS)
+CONVERGE_lda=MASS::lda(as.matrix(CONVERGE_pca_norm[,1:20]), grouping=CONVERGE_ID$plabels, tol = 1.0e-30)
+
+pred_CONVERGE_lda=predict(CONVERGE_lda,dimen=20)
+write.csv(table(CONVERGE_ID$plabels),file="Country_summary.csv")
+write.csv(table(CONVERGE_ID$alabels),file="Country.abbrv_summary.csv")
+write.csv(pred_CONVERGE_lda$x,file="pred_CONVERGE_dapc_coord.csv")
+
+CONVERGE_DAPC <- data.frame(sample.id=CONVERGE_pca$sample.id,CONVERGE_ID=CONVERGE_ID$ID,Country=CONVERGE_ID$plabels,CONVERGE_ID[,5:7],pred_CONVERGE_lda$x,stringsAsFactors = FALSE)
+write.csv(CONVERGE_DAPC,file="CONVERGE_dapc_coord_LDs_.csv")
+
+print("DAPC Finished")
+Sys.time()
+print("Doing KLDAPC")
+
+require("lfda")
+
+KLFDA=function (k, y, r, metric = c("weighted", "orthonormalized",
+                                    "plain"), knn = 1, reg = 0.001,tol=1e-40)
+{
+  metric <- match.arg(metric)
+  #D1=pwDeltaD(x,para)$PairwiseDeltaD
+  
+  # require("SNFtool")
+  #k=affinityMatrix(1-D1,K = K, sigma = sigma)
+  y <- t(as.matrix(y))
+  n <- nrow(k)
+  if (is.null(r))
+    r <- n
+  tSb <- mat.or.vec(n, n)
+  tSw <- mat.or.vec(n, n)
+  for (i in unique(as.vector(t(y)))) {
+    Kcc <- k[y == i, y == i]
+    Kc <- k[, y == i]
+    nc <- nrow(Kcc)
+    Kccdiag <- diag(Kcc)
+    distance2 <- repmat(Kccdiag, 1, nc) + repmat(t(Kccdiag),
+                                                 nc, 1) - 2 * Kcc
+    A <- getAffinityMatrix(distance2, knn, nc)
+    Kc1 <- as.matrix(rowSums(Kc))
+    Z <- Kc %*% (repmat(as.matrix(colSums(A)), 1, n) * t(Kc)) -
+      Kc %*% A %*% t(Kc)
+    tSb <- tSb + (Z/n) + Kc %*% t(Kc) * (1 - nc/n) + Kc1 %*%
+      (t(Kc1)/n)
+    tSw <- tSw + Z/nc
+  }
+  K1 <- as.matrix(rowSums(k))
+  tSb <- tSb - K1 %*% t(K1)/n - tSw
+  tSb <- (tSb + t(tSb))/2
+  tSw <- (tSw + t(tSw))/2
+  F=tSb/tSw
+  eigTmp <- suppressWarnings(rARPACK::eigs(A = solve(tSw +
+                                                       reg * diag(1, nrow(tSw), ncol(tSw)),tol=tol) %*% tSb, k = r,
+                                           which = "LM"))
+  eigVec <- Re(eigTmp$vectors)
+  eigVal <- as.matrix(Re(eigTmp$values))
+  Tr <- getMetricOfType(metric, eigVec, eigVal, n)
+  Z <- t(t(Tr) %*% k)
+  out <- list(T = Tr, Z = Z,eigVec=eigVec,eigVal=eigVal,nc=nc,A=k,F=F,distance2=distance2)
+  class(out) <- "lfda"
+  return(out)
+}
+###
+print("Sigma 0.5")
+CONVERGEKLFDAmat0_5=kmatrixGauss(as.matrix(CONVERGE_pca_norm),sigma = 0.5)
+CONVERGEKLFDAPC0_5=KLFDA(CONVERGEKLFDAmat0_5,y=as.matrix(CONVERGE_ID$plabels),r=10,metric = "plain",knn=1)
+
+write.csv(as.data.frame(cbind(CONVERGE_ID[,1:7],CONVERGEKLFDAPC0_5$Z)),file="rd_CONVERGEKLFDAPC_20_sigma_0_5_.csv")
+
+save(CONVERGEKLFDAPC0_5,file="CONVERGEKLFDAPC_20_sigma_0_5_.RData")
+
+RD_CONVERGEKLFDAPC0_5=CONVERGEKLFDAPC0_5$Z
+rm(CONVERGEKLFDAPC0_5,CONVERGEKLFDAmat0_5)
+print("Sigma 1")
+CONVERGEKLFDAmat1=kmatrixGauss(as.matrix(CONVERGE_pca_norm),sigma = 1)
+CONVERGEKLFDAPC1=KLFDA(CONVERGEKLFDAmat1,y=as.data.frame(CONVERGE_ID$plabels),r=10,metric = "plain",knn=1)
+write.csv(as.data.frame(cbind(CONVERGE_ID[,1:7],CONVERGEKLFDAPC1$Z)),file="rd_CONVERGEKLFDAPC_20_sigma_1_.csv")
+
+save(CONVERGEKLFDAPC1,file = "CONVERGE_FLFDAPC_20_sigma_1_.RData")
+
+CONVERGE_pca_norm=apply(CONVERGE_PCA[,11:30],2,normalize)
+print("Sigma 2.5")
+CONVERGEKLFDAmat2.5=kmatrixGauss(as.matrix(CONVERGE_pca_norm),sigma = 2.5)
+CONVERGEKLFDAPC2.5=KLFDA(CONVERGEKLFDAmat2.5,y=as.data.frame(CONVERGE_ID$plabels),r=10,metric = "plain",knn=1)
+write.csv(as.data.frame(cbind(CONVERGE_ID[,1:7],CONVERGEKLFDAPC2.5$Z)),file="rd_CONVERGEKLFDAPC_20_sigma_2.5_.csv")
+
+save(CONVERGEKLFDAPC2.5,file = "CONVERGE_FLFDAPC_20_sigma_2.5_.RData")
+
+RD_CONVERGEKLFDAPC1=CONVERGEKLFDAPC1$Z
+rm(CONVERGEKLFDAmat1,CONVERGEKLFDAPC1)
+print("Sigma 5")
+CONVERGEKLFDAmat5=kmatrixGauss(as.matrix(CONVERGE_pca_norm),sigma = 5)
+CONVERGEKLFDAPC5=KLFDA(CONVERGEKLFDAmat5,y=as.data.frame(CONVERGE_ID$plabels),r=10,metric = "plain",knn=1)
+write.csv(as.data.frame(cbind(CONVERGE_ID[,1:7],CONVERGEKLFDAPC5$Z)),file="rd_CONVERGEKLFDAPC_20_sigma_5_.csv")
+save(CONVERGEKLFDAPC5,file = "CONVERGE_FLFDAPC_20_sigma_5_.RData")
+RD_CONVERGEKLFDAPC_5=CONVERGEKLFDAPC5$Z
+rm(CONVERGEKLFDAPC5,CONVERGEKLFDAmat5)
+
+save.image(file = "CONVERGE_KLFDAPC_Data.RData")
+print("finished")
+
+
+
+
+
+
+
+
+
