@@ -1,0 +1,112 @@
+### Using a randomforest/ neural net classifier to discriminate the populations
+#load("Simulations_four_scenarios_reduced_features.RData")
+#save("PCA_Island","PCA_Hier_Island","PCA_sp","PCA_Hier_sp","DAPC_Island","DAPC_Hier_Island","DAPC_sp","DAPC_Hier_sp","KLFDAPC_Island0.5","KLFDAPC_Hier_Island0.5","KLFDAPC_sp0.5","KLFDAPC_Hier_sp0.5",file = "Discriminatory_power_simulations_Fig1.RData")
+library(caret)
+date()
+load("Discriminatory_power_simulations.RData")
+print("loading data and setting training")
+####As there are lots feature from different approaches, comparing the performance of different feature in discriminating the populations can be presented using the feature plots and also the predictive models built 
+## Constructing a neural net model for features in figure 1
+library(nnet)
+netControl <- trainControl(method = "adaptive_cv",
+                           number = 10, repeats = 10,
+                           adaptive = list(min = 5, alpha = 0.05, method = "gls", complete = TRUE),
+                           search = "random")  
+
+print("training PCA")
+date()
+Model_PCA_island=train(pop~PC1 + PC2+PC3, data = PCA_Island,
+                       method = "nnet", # now we're using the lasso method
+                       trControl = netControl,preProcess=c("scale","center"),
+                       tuneLength = 100,metric="Accuracy",verbose = FALSE)  
+date()
+print("training PCA hier Island")
+Model_PCA_Hier_island=train(pop~PC1 + PC2+PC3, data = PCA_Hier_Island,
+                            method = "nnet",  # now we're using the lasso method
+                            trControl = netControl,preProcess=c("scale","center"),
+                            tuneLength = 100,metric="Accuracy",verbose = FALSE)  
+
+date()
+print("training PCA sp")
+Model_PCA_stepping_stone=train(pop~PC1 + PC2+PC3,data = PCA_sp,
+                               method = "nnet",  # now we're using the lasso method
+                               trControl = netControl,preProcess=c("scale","center"),
+                               tuneLength = 100,metric="Accuracy",verbose = FALSE)  
+
+date()
+print("training PCA hier sp")
+Model_PCA_Hier_stepping_stone=train(pop~PC1 + PC2+PC3, data = PCA_Hier_sp,
+                                    method = "nnet",  # now we're using the lasso method
+                                    trControl = netControl,preProcess=c("scale","center"),
+                                    tuneLength = 100,metric="Accuracy",verbose = FALSE)  
+
+###DAPC
+date()
+print("training DAPC island")
+Model_DAPC_island=train(pop~PC1 + PC2+LD3, data = DAPC_Island,
+                        method = "nnet",  # now we're using the lasso method
+                        trControl = netControl,preProcess=c("scale","center"),
+                        tuneLength = 100,metric="Accuracy",verbose = FALSE) 
+date()
+print("training DAPC hier_island")
+Model_DAPC_Hier_island=train(pop~PC1 + PC2+LD3, data = DAPC_Hier_Island,
+                             method = "nnet",  # now we're using the lasso method
+                             trControl = netControl,preProcess=c("scale","center"),
+                             tuneLength = 100,metric="Accuracy",verbose = FALSE) 
+date()
+print("training DAPC sp")
+Model_DAPC_stepping_stone=train(pop~PC1 + PC2+LD3, data = DAPC_sp,
+                                method = "nnet",  # now we're using the lasso method
+                                trControl = netControl,preProcess=c("scale","center"),
+                                tuneLength = 100,metric="Accuracy",verbose = FALSE) 
+date()
+print("training DAPC hier_sp")
+Model_DAPC_Hier_stepping_stone=train(pop~PC1 + PC2+LD3, data = DAPC_Hier_sp,
+                                     method = "nnet",  # now we're using the lasso method
+                                     trControl = netControl,preProcess=c("scale","center"),
+                                     tuneLength = 100,metric="Accuracy",verbose = FALSE) 
+date()
+###KLFDAPC 0.5
+
+###
+date()
+print("training KLFDAPC island")
+Model_KLFDAPC_island=train(pop~PC1 + PC2+V3, data = KLFDAPC_Island0.5,
+                           method = "nnet",  # now we're using the lasso method
+                           trControl = netControl,preProcess=c("scale","center"),
+                           tuneLength = 100,metric="Accuracy",verbose = FALSE) 
+date()
+print("training DAPC hier_island")
+Model_KLFDAPC_Hier_island=train(pop~PC1 + PC2+V3,data= KLFDAPC_Hier_Island0.5,
+                                method = "nnet",  # now we're using the lasso method
+                                trControl = netControl,preProcess=c("scale","center"),
+                                tuneLength = 100,metric="Accuracy",verbose = FALSE) 
+date()
+print("training DAPC sp")
+Model_KLFDAPC_stepping_stone=train(pop~PC1 + PC2+V3, data = KLFDAPC_sp0.5,
+                                   method = "nnet",  # now we're using the lasso method
+                                   trControl = netControl,preProcess=c("scale","center"),
+                                   tuneLength = 100,metric="Accuracy",verbose = FALSE) 
+date()
+print("training DAPC hier_sp")
+Model_KLFDAPC_Hier_stepping_stone=train(pop~PC1 + PC2+V3, data = KLFDAPC_Hier_sp0.5,
+                                        method = "nnet",  # now we're using the lasso method
+                                        trControl = netControl,preProcess=c("scale","center"),
+                                        tuneLength = 100,metric="Accuracy",verbose = FALSE) 
+
+
+date()
+print("train finished")
+save.image(file = "Discriminantory_power_sim_model_Data_3RD.RData")
+# collect resamples
+results_Island <- resamples(list(PCA=Model_PCA_island, DAPC=Model_DAPC_island, KLFDAPC_0.5=Model_KLFDAPC_island))
+
+results_Hier_Island <- resamples(list(PCA=Model_PCA_Hier_island, DAPC=Model_DAPC_Hier_island, KLFDAPC_0.5=Model_KLFDAPC_Hier_island))
+
+results_sp <- resamples(list(PCA=Model_PCA_stepping_stone, DAPC=Model_DAPC_stepping_stone, KLFDAPC_0.5=Model_KLFDAPC_stepping_stone))
+
+results_Hier_sp <- resamples(list(PCA=Model_PCA_Hier_stepping_stone, DAPC=Model_DAPC_Hier_stepping_stone, KLFDAPC_0.5=Model_KLFDAPC_Hier_stepping_stone))
+
+save.image(file = "Discriminantory_power_sim_Model_Data_3_RD.RData")
+date()
+print("resampling finished and all done")
