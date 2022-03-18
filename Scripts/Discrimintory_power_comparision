@@ -1,4 +1,4 @@
-### Using a randomforest/ neural net classifier to discriminate the populations
+### Using a neural net classifier to discriminate the populations
 #load("Simulations_four_scenarios_reduced_features_update_pop.RData")
 #save("PCA_Island","PCA_Hier_Island","PCA_sp","PCA_Hier_sp","DAPC_Island","DAPC_Hier_Island","DAPC_sp","DAPC_Hier_sp","KLFDAPC_Island0.5","KLFDAPC_Hier_Island0.5","KLFDAPC_sp0.5","KLFDAPC_Hier_sp0.5",file = "Discriminatory_power_simulations_Fig1.RData")
 library(caret)
