@@ -51,6 +51,36 @@ vignette("Genome_scan_KLFDAPC")
 
 ``````
 
+## GDS format 
+
+GDS is portable across platforms with hierarchical structure to store multiple scalable array-oriented data sets with metadata information. Details can be found [here](http://bioconductor.org/packages/release/bioc/vignettes/gdsfmt/inst/doc/gdsfmt.html).
+
+You can convert PLINK/Oxford files to GDS using SNPRelate (Zheng et al. 2012).
+
+[snpgdsBED2GDS	Conversion from PLINK BED to GDS](https://rdrr.io/bioc/SNPRelate/man/snpgdsBED2GDS.html).
+[snpgdsGEN2GDS	Conversion from Oxford GEN format to GDS](https://rdrr.io/bioc/SNPRelate/man/snpgdsGEN2GDS.html).
+[snpgdsPED2GDS	Conversion from PLINK PED to GDS](https://rdrr.io/bioc/SNPRelate/man/snpgdsPED2GDS.html)
+
+Below, is an example on how to convert PLINK bed files to GDS, 
+
+``````
+library("SNPRelate")
+# PLINK BED files
+bed.fn ="/file_location/target.bed"
+fam.fn = "/file_location/target.fam"
+bim.fn = "/file_location/target.bim"
+
+# convert
+snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, "HapMap.gds")
+
+# open
+genofile <- snpgdsOpen("HapMap.gds")
+genofile
+
+# close
+snpgdsClose(genofile)
+``````
+
 ## Implementation of KLFDAPC
 
 The best practice for KLFDAPC is to use the below code instead of using the specific kernel function from kernelab (i.e., rbfdot kernel).
@@ -96,6 +126,6 @@ Welcome any [feedback](https://github.com/xinghuq/KLFDAPC/issues) and [pull requ
 
 Qin. X. 2020. KLFDAPC: Kernel Local Fisher Discriminant Analysis of Principal Components (KLFDAPC) for large genomic data. R package version 0.2.0.
 
-Qin, X., Chiang, C.W.K., and Gaggiotti, O.E. (2022). [KLFDAPC: A Supervised Machine Learning Approach for Spatial Genetic Structure Analysis](10.1093/bib/bbac202). Briefings in Bioinformatics, 10.1093/bib/bbac202.
+Qin, X., Chiang, C.W.K., and Gaggiotti, O.E. (2022). [KLFDAPC: A Supervised Machine Learning Approach for Spatial Genetic Structure Analysis](https://academic.oup.com/bib/advance-article/doi/10.1093/bib/bbac202/6596986). Briefings in Bioinformatics, bbac202, https://doi.org/10.1093/bib/bbac202.
 
 
