@@ -57,9 +57,12 @@ GDS is portable across platforms with hierarchical structure to store multiple s
 
 You can convert PLINK/Oxford files to GDS using SNPRelate (Zheng et al. 2012).
 
-[snpgdsBED2GDS	Conversion from PLINK BED to GDS](https://rdrr.io/bioc/SNPRelate/man/snpgdsBED2GDS.html).
-[snpgdsGEN2GDS	Conversion from Oxford GEN format to GDS](https://rdrr.io/bioc/SNPRelate/man/snpgdsGEN2GDS.html).
-[snpgdsPED2GDS	Conversion from PLINK PED to GDS](https://rdrr.io/bioc/SNPRelate/man/snpgdsPED2GDS.html)
+[snpgdsBED2GDS](https://rdrr.io/bioc/SNPRelate/man/snpgdsBED2GDS.html) Conversion from PLINK BED to GDS.
+
+[snpgdsGEN2GDS](https://rdrr.io/bioc/SNPRelate/man/snpgdsGEN2GDS.html) Conversion from Oxford GEN format to GDS.
+
+[snpgdsPED2GDS](https://rdrr.io/bioc/SNPRelate/man/snpgdsPED2GDS.html) Conversion from PLINK PED to GDS
+
 
 Below, is an example on how to convert PLINK bed files to GDS, 
 
