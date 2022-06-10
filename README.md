@@ -59,10 +59,11 @@ You can convert PLINK/Oxford files to GDS using SNPRelate (Zheng et al. 2012).
 
 [snpgdsBED2GDS](https://rdrr.io/bioc/SNPRelate/man/snpgdsBED2GDS.html) Conversion from PLINK BED to GDS.
 
+[snpgdsPED2GDS](https://rdrr.io/bioc/SNPRelate/man/snpgdsPED2GDS.html) Conversion from PLINK PED to GDS.
+
+[snpgdsVCF2GDS](https://rdrr.io/bioc/SNPRelate/man/snpgdsVCF2GDS.html) Conversion from vcf to GDS.
+
 [snpgdsGEN2GDS](https://rdrr.io/bioc/SNPRelate/man/snpgdsGEN2GDS.html) Conversion from Oxford GEN format to GDS.
-
-[snpgdsPED2GDS](https://rdrr.io/bioc/SNPRelate/man/snpgdsPED2GDS.html) Conversion from PLINK PED to GDS
-
 
 Below, is an example on how to convert PLINK bed files to GDS, 
 
@@ -95,6 +96,7 @@ genofile <- SNPRelate::snpgdsOpen(snpgdsExampleFileName())
 ## obtaining pop code
 pop_code <- read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))
 pop_code <- read.gdsn(index.gdsn(genofile, path="sample.annot/pop.group"))
+##  Note your pop_code should be align with the pop levels, if you deleted single individuals in some pops, your should update the pop factor levels as well.
 pop_code=factor(pop_code,levels=unique(pop_code))
 ## Doing PCA
 pcadata <- SNPRelate::snpgdsPCA(genofile)
